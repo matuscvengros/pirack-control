@@ -44,8 +44,7 @@ docker compose up -d --build
 **Docker (pull from GHCR):**
 
 ```bash
-PIRACK_IMAGE=ghcr.io/matuscvengros/pirack-control:latest docker compose pull && \
-PIRACK_IMAGE=ghcr.io/matuscvengros/pirack-control:latest docker compose up -d
+PIRACK_IMAGE=ghcr.io/matuscvengros/pirack-control:latest docker compose up -d --pull always
 ```
 
 > On non-Pi hosts, remove the `devices` section from the compose file.
