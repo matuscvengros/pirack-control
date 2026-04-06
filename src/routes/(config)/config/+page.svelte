@@ -83,6 +83,7 @@
 							class:bg-[#4ade80]={config.modules.enabled.includes(moduleId)}
 							class:bg-[#333]={!config.modules.enabled.includes(moduleId)}
 							onclick={() => toggleModule(moduleId)}
+							aria-label="Toggle {mod.name}"
 						>
 							<div class="w-4 h-4 rounded-full bg-white absolute top-0.5 shadow transition-all"
 								class:right-0.5={config.modules.enabled.includes(moduleId)}
