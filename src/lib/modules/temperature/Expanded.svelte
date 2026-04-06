@@ -16,6 +16,12 @@
 		return values.map((v, i) => `${i * step},${80 - ((v - min) / range) * 75}`).join(' ');
 	}
 
+	function fillPath(values: number[]): string {
+		const line = graphPath(values);
+		if (!line) return '';
+		return `${line} 600,80 0,80`;
+	}
+
 	function dangerY(values: number[]): number {
 		if (values.length === 0) return 10;
 		const min = Math.min(...values) - 3;
@@ -45,13 +51,33 @@
 	<div class="flex-1 flex flex-col px-4 py-2.5">
 		<div class="flex-1 relative">
 			<svg width="100%" height="100%" viewBox="0 0 600 80" preserveAspectRatio="none">
+				<defs>
+					<linearGradient id="tempGradExp" x1="0" y1="0" x2="0" y2="1">
+						<stop offset="0%" stop-color="#fb923c" stop-opacity="0.45" />
+						<stop offset="35%" stop-color="#fb923c" stop-opacity="0.15" />
+						<stop offset="100%" stop-color="#fb923c" stop-opacity="0.02" />
+					</linearGradient>
+				</defs>
 				{#each [16, 32, 48, 64] as y}
 					<line x1="0" y1={y} x2="600" y2={y} stroke="white" stroke-opacity="0.025" stroke-width="0.5" />
 				{/each}
 				{#if history.length > 0}
 					<line x1="0" y1={dangerY(history.map((h) => h.value))} x2="600" y2={dangerY(history.map((h) => h.value))} stroke="#ef4444" stroke-width="0.5" stroke-dasharray="4,4" opacity="0.3" />
 				{/if}
-				<polyline points={graphPath(history.map((h) => h.value))} fill="none" stroke="#fb923c" stroke-width="2" />
+				{#if history.length >= 2}
+					<polygon points={fillPath(history.map((h) => h.value))} fill="url(#tempGradExp)" />
+				{/if}
+				<polyline points={graphPath(history.map((h) => h.value))} fill="none" stroke="#fb923c" stroke-width="1.2" opacity="0.9" />
+				{#if history.length > 0}
+					{@const lastX = 600}
+					{@const vals = history.map((h) => h.value)}
+					{@const min = Math.min(...vals) - 3}
+					{@const max = Math.max(...vals, dangerThreshold) + 3}
+					{@const range = max - min || 1}
+					{@const lastY = 80 - ((vals[vals.length - 1] - min) / range) * 75}
+					<circle cx={lastX} cy={lastY} r="2.5" fill="#fb923c" />
+					<circle cx={lastX} cy={lastY} r="5" fill="#fb923c" opacity="0.15" />
+				{/if}
 			</svg>
 		</div>
 		<div class="flex justify-between text-[8px] text-[#333] pt-0.5">

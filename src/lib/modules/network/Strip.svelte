@@ -17,7 +17,13 @@
 		if (values.length < 2) return '';
 		const max = Math.max(...values, 1);
 		const step = 120 / (values.length - 1);
-		return values.map((v, i) => `${i * step},${height - (v / max) * height}`).join(' ');
+		return values.map((v, i) => `${i * step},${height - (v / max) * height * 0.9}`).join(' ');
+	}
+
+	function sparklineFill(values: number[], height: number): string {
+		const line = sparklinePath(values, height);
+		if (!line) return '';
+		return `${line} 120,${height} 0,${height}`;
 	}
 </script>
 
@@ -38,9 +44,21 @@
 		</div>
 		<div class="flex-1 h-[50px]">
 			<svg width="100%" height="100%" viewBox="0 0 120 50" preserveAspectRatio="none">
+				<defs>
+					<linearGradient id="txGradStrip" x1="0" y1="0" x2="0" y2="1">
+						<stop offset="0%" stop-color="#4ade80" stop-opacity="0.45" />
+						<stop offset="100%" stop-color="#4ade80" stop-opacity="0.02" />
+					</linearGradient>
+					<linearGradient id="rxGradStrip" x1="0" y1="0" x2="0" y2="1">
+						<stop offset="0%" stop-color="#60a5fa" stop-opacity="0.3" />
+						<stop offset="100%" stop-color="#60a5fa" stop-opacity="0.02" />
+					</linearGradient>
+				</defs>
 				{#if history.length >= 2}
-					<polyline points={sparklinePath(history.map((h) => h.txRate), 50)} fill="none" stroke="#4ade80" stroke-width="1.5" />
-					<polyline points={sparklinePath(history.map((h) => h.rxRate), 50)} fill="none" stroke="#60a5fa" stroke-width="1.2" opacity="0.6" />
+					<polygon points={sparklineFill(history.map((h) => h.txRate), 50)} fill="url(#txGradStrip)" />
+					<polyline points={sparklinePath(history.map((h) => h.txRate), 50)} fill="none" stroke="#4ade80" stroke-width="1" opacity="0.8" />
+					<polygon points={sparklineFill(history.map((h) => h.rxRate), 50)} fill="url(#rxGradStrip)" />
+					<polyline points={sparklinePath(history.map((h) => h.rxRate), 50)} fill="none" stroke="#60a5fa" stroke-width="0.8" opacity="0.5" />
 				{/if}
 			</svg>
 		</div>

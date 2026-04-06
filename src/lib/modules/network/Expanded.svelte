@@ -41,13 +41,26 @@
 	</div>
 	<div class="flex-1 h-[80%] bg-white/[0.02] rounded-lg p-2 relative overflow-hidden">
 		<svg width="100%" height="100%" viewBox="0 0 400 60" preserveAspectRatio="none">
+			<defs>
+				<linearGradient id="txGradExp" x1="0" y1="0" x2="0" y2="1">
+					<stop offset="0%" stop-color="#4ade80" stop-opacity="0.5" />
+					<stop offset="40%" stop-color="#4ade80" stop-opacity="0.15" />
+					<stop offset="100%" stop-color="#4ade80" stop-opacity="0.02" />
+				</linearGradient>
+				<linearGradient id="rxGradExp" x1="0" y1="0" x2="0" y2="1">
+					<stop offset="0%" stop-color="#60a5fa" stop-opacity="0.35" />
+					<stop offset="40%" stop-color="#60a5fa" stop-opacity="0.1" />
+					<stop offset="100%" stop-color="#60a5fa" stop-opacity="0.02" />
+				</linearGradient>
+			</defs>
 			{#each [15, 30, 45] as y}
 				<line x1="0" y1={y} x2="400" y2={y} stroke="white" stroke-opacity="0.03" stroke-width="0.5" />
 			{/each}
 			{#if history.length >= 2}
-				<polygon points={fillPath(history.map((h) => h.txRate), 400, 60)} fill="#4ade80" opacity="0.1" />
-				<polyline points={graphPath(history.map((h) => h.txRate), 400, 60)} fill="none" stroke="#4ade80" stroke-width="2" />
-				<polyline points={graphPath(history.map((h) => h.rxRate), 400, 60)} fill="none" stroke="#60a5fa" stroke-width="1.5" opacity="0.7" />
+				<polygon points={fillPath(history.map((h) => h.txRate), 400, 60)} fill="url(#txGradExp)" />
+				<polyline points={graphPath(history.map((h) => h.txRate), 400, 60)} fill="none" stroke="#4ade80" stroke-width="1.2" opacity="0.9" />
+				<polygon points={fillPath(history.map((h) => h.rxRate), 400, 60)} fill="url(#rxGradExp)" />
+				<polyline points={graphPath(history.map((h) => h.rxRate), 400, 60)} fill="none" stroke="#60a5fa" stroke-width="1" opacity="0.6" />
 			{/if}
 		</svg>
 	</div>
