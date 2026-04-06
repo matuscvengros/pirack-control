@@ -1,0 +1,82 @@
+import fs from 'fs';
+import path from 'path';
+import type { ModuleConfig, ModuleData } from '$lib/modules/types';
+
+interface TemperatureReading {
+	timestamp: number;
+	value: number;
+}
+
+interface TemperatureHistory {
+	readings: TemperatureReading[];
+}
+
+function getDataDir(): string {
+	return process.env.DATA_DIR || path.join(process.cwd(), 'data');
+}
+
+function getHistoryPath(): string {
+	return path.join(getDataDir(), 'temperature-history.json');
+}
+
+function loadHistory(): TemperatureHistory {
+	try {
+		const raw = fs.readFileSync(getHistoryPath(), 'utf-8');
+		return JSON.parse(raw);
+	} catch {
+		return { readings: [] };
+	}
+}
+
+function saveHistory(history: TemperatureHistory): void {
+	const dir = path.dirname(getHistoryPath());
+	fs.mkdirSync(dir, { recursive: true });
+	fs.writeFileSync(getHistoryPath(), JSON.stringify(history));
+}
+
+function readSystemTemp(): number | null {
+	try {
+		const raw = fs.readFileSync('/sys/class/thermal/thermal_zone0/temp', 'utf-8');
+		return parseInt(raw.trim(), 10) / 1000;
+	} catch {
+		return null;
+	}
+}
+
+function pruneOldReadings(readings: TemperatureReading[]): TemperatureReading[] {
+	const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+	return readings.filter((r) => r.timestamp > cutoff);
+}
+
+export async function getData(config: ModuleConfig): Promise<ModuleData> {
+	const currentTemp = readSystemTemp();
+	const history = loadHistory();
+
+	if (currentTemp !== null) {
+		const lastReading = history.readings[history.readings.length - 1];
+		const now = Date.now();
+		if (!lastReading || now - lastReading.timestamp >= 60000) {
+			history.readings.push({ timestamp: now, value: currentTemp });
+			history.readings = pruneOldReadings(history.readings);
+			saveHistory(history);
+		}
+	}
+
+	const readings = pruneOldReadings(history.readings);
+	const values = readings.map((r) => r.value);
+	const high = values.length > 0 ? Math.max(...values) : null;
+	const low = values.length > 0 ? Math.min(...values) : null;
+	const avg = values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : null;
+
+	return {
+		current: currentTemp,
+		high: high !== null ? Math.round(high * 10) / 10 : null,
+		low: low !== null ? Math.round(low * 10) / 10 : null,
+		avg: avg !== null ? Math.round(avg * 10) / 10 : null,
+		dangerThreshold: (config.dangerThreshold as number) ?? 45,
+		history: readings.map((r) => ({
+			timestamp: r.timestamp,
+			value: Math.round(r.value * 10) / 10
+		}))
+	};
+}
