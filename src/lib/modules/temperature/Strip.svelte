@@ -1,23 +1,12 @@
 <script lang="ts">
+	import { smoothPath, smoothFillPath, valuesToPointsRange } from '$lib/utils/smooth-path';
+
 	let { data } = $props<{ data: Record<string, unknown> }>();
 	const current = $derived((data.current as number | null) ?? null);
 	const high = $derived((data.high as number | null) ?? null);
 	const history = $derived((data.history as { timestamp: number; value: number }[]) ?? []);
 
-	function sparklinePath(values: number[]): string {
-		if (values.length < 2) return '';
-		const min = Math.min(...values) - 2;
-		const max = Math.max(...values) + 2;
-		const range = max - min || 1;
-		const step = 100 / (values.length - 1);
-		return values.map((v, i) => `${i * step},${40 - ((v - min) / range) * 36}`).join(' ');
-	}
-
-	function sparklineFill(values: number[]): string {
-		const line = sparklinePath(values);
-		if (!line) return '';
-		return `${line} 100,40 0,40`;
-	}
+	const tempPoints = $derived(valuesToPointsRange(history.map((h) => h.value), 100, 40, 2, 0.9));
 </script>
 
 <div class="flex flex-col h-full px-5">
@@ -44,9 +33,9 @@
 						<stop offset="100%" stop-color="#fb923c" stop-opacity="0.02" />
 					</linearGradient>
 				</defs>
-				{#if history.length >= 2}
-					<polygon points={sparklineFill(history.map((h) => h.value))} fill="url(#tempGradStrip)" />
-					<polyline points={sparklinePath(history.map((h) => h.value))} fill="none" stroke="#fb923c" stroke-width="1" opacity="0.8" />
+				{#if tempPoints.length >= 2}
+					<path d={smoothFillPath(tempPoints, 100, 40)} fill="url(#tempGradStrip)" />
+					<path d={smoothPath(tempPoints)} fill="none" stroke="#fb923c" stroke-width="1" opacity="0.8" />
 				{/if}
 			</svg>
 		</div>

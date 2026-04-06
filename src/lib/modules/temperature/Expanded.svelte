@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { smoothPath, smoothFillPath, valuesToPointsRange } from '$lib/utils/smooth-path';
+
 	let { data } = $props<{ data: Record<string, unknown> }>();
 	const current = $derived((data.current as number | null) ?? null);
 	const high = $derived((data.high as number | null) ?? null);
@@ -7,27 +9,17 @@
 	const dangerThreshold = $derived((data.dangerThreshold as number) ?? 45);
 	const history = $derived((data.history as { timestamp: number; value: number }[]) ?? []);
 
-	function graphPath(values: number[]): string {
-		if (values.length < 2) return '';
-		const min = Math.min(...values) - 3;
-		const max = Math.max(...values, dangerThreshold) + 3;
-		const range = max - min || 1;
-		const step = 600 / (values.length - 1);
-		return values.map((v, i) => `${i * step},${80 - ((v - min) / range) * 75}`).join(' ');
-	}
+	const tempPoints = $derived(valuesToPointsRange(
+		history.map((h) => h.value), 600, 80, 3, 0.9
+	));
 
-	function fillPath(values: number[]): string {
-		const line = graphPath(values);
-		if (!line) return '';
-		return `${line} 600,80 0,80`;
-	}
-
-	function dangerY(values: number[]): number {
+	function dangerY(): number {
+		const values = history.map((h) => h.value);
 		if (values.length === 0) return 10;
 		const min = Math.min(...values) - 3;
 		const max = Math.max(...values, dangerThreshold) + 3;
 		const range = max - min || 1;
-		return 80 - ((dangerThreshold - min) / range) * 75;
+		return 80 - ((dangerThreshold - min) / range) * 80 * 0.9;
 	}
 </script>
 
@@ -62,21 +54,14 @@
 					<line x1="0" y1={y} x2="600" y2={y} stroke="white" stroke-opacity="0.025" stroke-width="0.5" />
 				{/each}
 				{#if history.length > 0}
-					<line x1="0" y1={dangerY(history.map((h) => h.value))} x2="600" y2={dangerY(history.map((h) => h.value))} stroke="#ef4444" stroke-width="0.5" stroke-dasharray="4,4" opacity="0.3" />
+					<line x1="0" y1={dangerY()} x2="600" y2={dangerY()} stroke="#ef4444" stroke-width="0.5" stroke-dasharray="4,4" opacity="0.3" />
 				{/if}
-				{#if history.length >= 2}
-					<polygon points={fillPath(history.map((h) => h.value))} fill="url(#tempGradExp)" />
-				{/if}
-				<polyline points={graphPath(history.map((h) => h.value))} fill="none" stroke="#fb923c" stroke-width="1.2" opacity="0.9" />
-				{#if history.length > 0}
-					{@const lastX = 600}
-					{@const vals = history.map((h) => h.value)}
-					{@const min = Math.min(...vals) - 3}
-					{@const max = Math.max(...vals, dangerThreshold) + 3}
-					{@const range = max - min || 1}
-					{@const lastY = 80 - ((vals[vals.length - 1] - min) / range) * 75}
-					<circle cx={lastX} cy={lastY} r="2.5" fill="#fb923c" />
-					<circle cx={lastX} cy={lastY} r="5" fill="#fb923c" opacity="0.15" />
+				{#if tempPoints.length >= 2}
+					<path d={smoothFillPath(tempPoints, 600, 80)} fill="url(#tempGradExp)" />
+					<path d={smoothPath(tempPoints)} fill="none" stroke="#fb923c" stroke-width="1.2" opacity="0.9" />
+					{@const last = tempPoints[tempPoints.length - 1]}
+					<circle cx={last[0]} cy={last[1]} r="2.5" fill="#fb923c" />
+					<circle cx={last[0]} cy={last[1]} r="5" fill="#fb923c" opacity="0.15" />
 				{/if}
 			</svg>
 		</div>

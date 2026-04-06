@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { smoothPath, smoothFillPath, valuesToPoints } from '$lib/utils/smooth-path';
+
 	let { data } = $props<{ data: Record<string, unknown> }>();
 	const txRate = $derived((data.txRate as number) ?? 0);
 	const rxRate = $derived((data.rxRate as number) ?? 0);
@@ -13,18 +15,8 @@
 	const tx = $derived(formatRate(txRate));
 	const rx = $derived(formatRate(rxRate));
 
-	function sparklinePath(values: number[], height: number): string {
-		if (values.length < 2) return '';
-		const max = Math.max(...values, 1);
-		const step = 120 / (values.length - 1);
-		return values.map((v, i) => `${i * step},${height - (v / max) * height * 0.9}`).join(' ');
-	}
-
-	function sparklineFill(values: number[], height: number): string {
-		const line = sparklinePath(values, height);
-		if (!line) return '';
-		return `${line} 120,${height} 0,${height}`;
-	}
+	const txPoints = $derived(valuesToPoints(history.map((h) => h.txRate), 120, 50));
+	const rxPoints = $derived(valuesToPoints(history.map((h) => h.rxRate), 120, 50));
 </script>
 
 <div class="flex flex-col h-full px-5">
@@ -54,11 +46,13 @@
 						<stop offset="100%" stop-color="#60a5fa" stop-opacity="0.02" />
 					</linearGradient>
 				</defs>
-				{#if history.length >= 2}
-					<polygon points={sparklineFill(history.map((h) => h.txRate), 50)} fill="url(#txGradStrip)" />
-					<polyline points={sparklinePath(history.map((h) => h.txRate), 50)} fill="none" stroke="#4ade80" stroke-width="1" opacity="0.8" />
-					<polygon points={sparklineFill(history.map((h) => h.rxRate), 50)} fill="url(#rxGradStrip)" />
-					<polyline points={sparklinePath(history.map((h) => h.rxRate), 50)} fill="none" stroke="#60a5fa" stroke-width="0.8" opacity="0.5" />
+				{#if txPoints.length >= 2}
+					<path d={smoothFillPath(txPoints, 120, 50)} fill="url(#txGradStrip)" />
+					<path d={smoothPath(txPoints)} fill="none" stroke="#4ade80" stroke-width="1" opacity="0.8" />
+				{/if}
+				{#if rxPoints.length >= 2}
+					<path d={smoothFillPath(rxPoints, 120, 50)} fill="url(#rxGradStrip)" />
+					<path d={smoothPath(rxPoints)} fill="none" stroke="#60a5fa" stroke-width="0.8" opacity="0.5" />
 				{/if}
 			</svg>
 		</div>
