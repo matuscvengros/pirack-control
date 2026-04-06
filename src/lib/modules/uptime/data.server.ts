@@ -6,5 +6,6 @@ export async function getData(_config: ModuleConfig): Promise<ModuleData> {
 	const days = Math.floor(uptimeSeconds / 86400);
 	const hours = Math.floor((uptimeSeconds % 86400) / 3600);
 	const minutes = Math.floor((uptimeSeconds % 3600) / 60);
-	return { totalSeconds: uptimeSeconds, days, hours, minutes };
+	const seconds = Math.floor(uptimeSeconds % 60);
+	return { totalSeconds: uptimeSeconds, days, hours, minutes, seconds };
 }
