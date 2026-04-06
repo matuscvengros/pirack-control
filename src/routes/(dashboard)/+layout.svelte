@@ -2,7 +2,7 @@
 	let { children } = $props();
 </script>
 
-<div class="lcd-root w-[1424px] h-[280px] bg-[#07080f] overflow-hidden font-['Inter',system-ui,sans-serif]">
+<div class="lcd-root w-[1424px] h-[280px] bg-[#07080f] overflow-hidden font-['Inter',system-ui,sans-serif] border border-[#1a2040]">
 	{@render children()}
 </div>
 

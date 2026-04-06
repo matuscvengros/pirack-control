@@ -70,9 +70,11 @@
 	</div>
 {:else}
 	<div class="flex h-full w-full relative">
-		{#each data.modules as mod}
+		{#each data.modules as mod, i}
 			<button
-				class="flex items-center justify-center h-full border-r border-[#1a2040] bg-gradient-to-b from-[#0d1120] to-[#090d18] hover:from-[#111830] hover:to-[#0d1120] transition-all cursor-pointer flex-1 min-w-0 text-left"
+				class="flex items-center justify-center h-full bg-gradient-to-b from-[#0d1120] to-[#090d18] hover:from-[#111830] hover:to-[#0d1120] transition-all cursor-pointer flex-1 min-w-0 text-left"
+				class:border-r={i < data.modules.length - 1}
+				class:border-[#1a2040]={i < data.modules.length - 1}
 				class:from-[#0f1628]={mod.id === 'rack-info'}
 				class:to-[#0a0f1e]={mod.id === 'rack-info'}
 				class:!cursor-default={!mod.expandable}
@@ -91,6 +93,5 @@
 				{/if}
 			</button>
 		{/each}
-		<div class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#7dd3fc44] via-[#4ade8044] to-[#7dd3fc22]"></div>
 	</div>
 {/if}
