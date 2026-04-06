@@ -1,7 +1,7 @@
 # Build stage
 FROM node:20-slim AS build
 
-WORKDIR /app
+WORKDIR /dashboard
 COPY package*.json ./
 RUN npm ci
 COPY . .
@@ -10,21 +10,20 @@ RUN npm run build
 # Runtime stage
 FROM node:20-slim AS runtime
 
-WORKDIR /app
+# Create non-root user with gpio group access
+RUN groupadd -r gpio && useradd -m -s /bin/bash -g gpio pi
 
-COPY --from=build /app/build ./build
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/package.json ./
+COPY --from=build /dashboard/build /home/pi/dashboard/build
+COPY --from=build /dashboard/node_modules /home/pi/dashboard/node_modules
+COPY --from=build /dashboard/package.json /home/pi/dashboard/package.json
+
+RUN mkdir -p /home/pi/dashboard/data && chown -R pi:gpio /home/pi/dashboard
 
 ENV PORT=3000
-ENV DATA_DIR=/app/data
+ENV DATA_DIR=/home/pi/dashboard/data
 
-# Create non-root user with gpio group access
-RUN groupadd -r gpio && useradd -r -g gpio -G node pirack && \
-    mkdir -p /app/data && chown -R pirack:gpio /app
-
-USER pirack
-
+USER pi
 EXPOSE 3000
 
+WORKDIR /home/pi/dashboard
 CMD ["node", "build"]

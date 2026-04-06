@@ -49,8 +49,15 @@ PIRACK_IMAGE=pirack-control docker compose up -d --build
 
 > On non-Pi hosts, remove the `devices` section from the compose file.
 
-## Configuration
+## Usage
 
-Open `http://<host>:3000/config` to manage modules, reorder panels, and change settings.
+- **Dashboard:** `http://<host>:3000/dashboard`
+- **Configuration:** `http://<host>:3000/config`
+
+On the Pi, launch Chromium in kiosk mode to display the dashboard on the LCD:
+
+```bash
+chromium-browser --kiosk --noerrdialogs --disable-infobars http://localhost:3000/dashboard
+```
 
 App config persists in `./data/config.json` (mounted as a Docker volume).

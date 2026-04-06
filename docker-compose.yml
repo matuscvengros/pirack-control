@@ -1,17 +1,12 @@
+name: pirack-control
 services:
-  pirack-control:
-    image: ${PIRACK_IMAGE:-ghcr.io/matuscvengros/pirack-control:latest}
-    build:
-      context: .
-    container_name: pirack-control
+  dashboard:
+    image: ${PIRACK_IMAGE:-pirack-control}
+    build: .
     ports:
       - "${PORT:-3000}:3000"
     volumes:
-      - ./data:/app/data
+      - ./data:/home/pi/dashboard/data
     devices:
       - /dev/gpiomem:/dev/gpiomem
-    environment:
-      - NODE_ENV=production
-      - PORT=3000
-      - DATA_DIR=/app/data
     restart: unless-stopped
