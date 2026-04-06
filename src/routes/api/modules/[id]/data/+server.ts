@@ -25,7 +25,7 @@ export const GET: RequestHandler = async ({ params }) => {
 	if (!meta) error(404, `Module "${id}" not found`);
 	const provider = dataProviders[id];
 	if (!provider) error(404, `No data provider for module "${id}"`);
-	const config = loadConfig();
+	const config = await loadConfig();
 	const moduleConfig = config.modules.settings[id] ?? meta.defaultConfig;
 	const data = await provider(moduleConfig);
 	return json(data);

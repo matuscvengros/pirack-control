@@ -1,4 +1,5 @@
-import fs from 'fs';
+import fs from 'fs/promises';
+import { mkdirSync, readFileSync } from 'fs';
 import path from 'path';
 import type { ModuleConfig, ModuleData } from '$lib/modules/types';
 
@@ -19,24 +20,24 @@ function getHistoryPath(): string {
 	return path.join(getDataDir(), 'temperature-history.json');
 }
 
-function loadHistory(): TemperatureHistory {
+async function loadHistory(): Promise<TemperatureHistory> {
 	try {
-		const raw = fs.readFileSync(getHistoryPath(), 'utf-8');
+		const raw = await fs.readFile(getHistoryPath(), 'utf-8');
 		return JSON.parse(raw);
 	} catch {
 		return { readings: [] };
 	}
 }
 
-function saveHistory(history: TemperatureHistory): void {
+async function saveHistory(history: TemperatureHistory): Promise<void> {
 	const dir = path.dirname(getHistoryPath());
-	fs.mkdirSync(dir, { recursive: true });
-	fs.writeFileSync(getHistoryPath(), JSON.stringify(history));
+	mkdirSync(dir, { recursive: true });
+	await fs.writeFile(getHistoryPath(), JSON.stringify(history));
 }
 
 function readSystemTemp(): number | null {
 	try {
-		const raw = fs.readFileSync('/sys/class/thermal/thermal_zone0/temp', 'utf-8');
+		const raw = readFileSync('/sys/class/thermal/thermal_zone0/temp', 'utf-8');
 		return parseInt(raw.trim(), 10) / 1000;
 	} catch {
 		return null;
@@ -50,7 +51,7 @@ function pruneOldReadings(readings: TemperatureReading[]): TemperatureReading[] 
 
 export async function getData(config: ModuleConfig): Promise<ModuleData> {
 	const currentTemp = readSystemTemp();
-	const history = loadHistory();
+	const history = await loadHistory();
 
 	const now = Date.now();
 	let dirty = false;
@@ -71,7 +72,7 @@ export async function getData(config: ModuleConfig): Promise<ModuleData> {
 	history.readings = prunedReadings;
 
 	if (dirty) {
-		saveHistory(history);
+		await saveHistory(history);
 	}
 
 	const readings = prunedReadings;

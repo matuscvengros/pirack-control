@@ -38,7 +38,7 @@ export const POST: RequestHandler = async ({ params, request }) => {
 	}
 
 	const { action, payload } = result.data;
-	const config = loadConfig();
+	const config = await loadConfig();
 	const moduleConfig = config.modules.settings[id] ?? meta.defaultConfig;
 	const handlerResult = await handler(action, payload, moduleConfig);
 	return json(handlerResult);

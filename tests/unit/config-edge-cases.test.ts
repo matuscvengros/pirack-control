@@ -17,24 +17,24 @@ describe('config edge cases', () => {
 		delete process.env.DATA_DIR;
 	});
 
-	it('returns default config for corrupted JSON file', () => {
+	it('returns default config for corrupted JSON file', async () => {
 		fs.writeFileSync(TEST_CONFIG_PATH, 'NOT VALID JSON {{{');
-		const config = loadConfig();
+		const config = await loadConfig();
 		expect(config.general.rackName).toBe('HOME-LAB');
 	});
 
-	it('returns default config for empty file', () => {
+	it('returns default config for empty file', async () => {
 		fs.writeFileSync(TEST_CONFIG_PATH, '');
-		const config = loadConfig();
+		const config = await loadConfig();
 		expect(config.general.rackName).toBe('HOME-LAB');
 	});
 
-	it('creates data directory if it does not exist on save', () => {
+	it('creates data directory if it does not exist on save', async () => {
 		const nestedDir = path.join(TEST_DATA_DIR, 'nested', 'deep');
 		process.env.DATA_DIR = nestedDir;
 
 		const config = getDefaultConfig();
-		saveConfig(config);
+		await saveConfig(config);
 
 		expect(fs.existsSync(path.join(nestedDir, 'config.json'))).toBe(true);
 	});

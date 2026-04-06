@@ -17,25 +17,25 @@ describe('config', () => {
 		delete process.env.DATA_DIR;
 	});
 
-	it('returns default config when no file exists', () => {
-		const config = loadConfig();
+	it('returns default config when no file exists', async () => {
+		const config = await loadConfig();
 		expect(config.general.rackName).toBe('HOME-LAB');
 		expect(config.modules.order).toContain('rack-info');
 	});
 
-	it('loads config from file', () => {
+	it('loads config from file', async () => {
 		const custom = getDefaultConfig();
 		custom.general.rackName = 'MY-RACK';
 		fs.writeFileSync(TEST_CONFIG_PATH, JSON.stringify(custom));
 
-		const config = loadConfig();
+		const config = await loadConfig();
 		expect(config.general.rackName).toBe('MY-RACK');
 	});
 
-	it('saves config to file', () => {
+	it('saves config to file', async () => {
 		const config = getDefaultConfig();
 		config.general.rackName = 'SAVED-RACK';
-		saveConfig(config);
+		await saveConfig(config);
 
 		const raw = JSON.parse(fs.readFileSync(TEST_CONFIG_PATH, 'utf-8'));
 		expect(raw.general.rackName).toBe('SAVED-RACK');

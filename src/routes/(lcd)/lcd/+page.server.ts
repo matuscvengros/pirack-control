@@ -3,7 +3,7 @@ import { loadConfig } from '$lib/server/config';
 import { getEnabledModules } from '$lib/modules/registry';
 
 export const load: PageServerLoad = async () => {
-	const config = loadConfig();
+	const config = await loadConfig();
 	const modules = getEnabledModules(config.modules.order, config.modules.enabled);
 	return {
 		config: config.general,

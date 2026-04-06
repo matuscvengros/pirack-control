@@ -3,7 +3,7 @@ import { loadConfig } from '$lib/server/config';
 import { registry } from '$lib/modules/registry';
 
 export const load: PageServerLoad = async () => {
-	const config = loadConfig();
+	const config = await loadConfig();
 	return {
 		config,
 		availableModules: registry.map((m) => ({
