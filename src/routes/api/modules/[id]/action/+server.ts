@@ -3,6 +3,7 @@ import type { RequestHandler } from './$types';
 import { loadConfig } from '$lib/server/config';
 import { getModule } from '$lib/modules/registry';
 import { onAction as coolingAction } from '$lib/modules/cooling/data.server';
+import { actionRequestSchema, validateRequestHeaders } from '$lib/server/validation';
 
 const actionHandlers: Record<
 	string,
@@ -21,16 +22,24 @@ export const POST: RequestHandler = async ({ params, request }) => {
 	if (!meta) error(404, `Module "${id}" not found`);
 	const handler = actionHandlers[id];
 	if (!handler) error(400, `Module "${id}" does not support actions`);
-	let body: { action?: string; payload?: unknown };
+
+	validateRequestHeaders(request);
+
+	let body: unknown;
 	try {
 		body = await request.json();
 	} catch {
 		error(400, 'Invalid JSON body');
 	}
-	const { action, payload } = body;
-	if (!action) error(400, 'Missing "action" field');
+
+	const result = actionRequestSchema.safeParse(body);
+	if (!result.success) {
+		error(400, result.error.errors.map((e) => e.message).join(', '));
+	}
+
+	const { action, payload } = result.data;
 	const config = loadConfig();
 	const moduleConfig = config.modules.settings[id] ?? meta.defaultConfig;
-	const result = await handler(action, payload, moduleConfig);
-	return json(result);
+	const handlerResult = await handler(action, payload, moduleConfig);
+	return json(handlerResult);
 };

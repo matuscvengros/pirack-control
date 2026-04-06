@@ -1,4 +1,5 @@
-import fs from 'fs';
+import fs from 'fs/promises';
+import { existsSync, mkdirSync } from 'fs';
 import path from 'path';
 import type { AppConfig } from '$lib/modules/types';
 
@@ -35,19 +36,20 @@ export function getDefaultConfig(): AppConfig {
 	};
 }
 
-export function loadConfig(): AppConfig {
+export async function loadConfig(): Promise<AppConfig> {
 	const configPath = getConfigPath();
 	try {
-		const raw = fs.readFileSync(configPath, 'utf-8');
+		const raw = await fs.readFile(configPath, 'utf-8');
 		return JSON.parse(raw) as AppConfig;
-	} catch {
+	} catch (e) {
+		console.warn('[Config] Could not read config file, using defaults:', (e as Error).message);
 		return getDefaultConfig();
 	}
 }
 
-export function saveConfig(config: AppConfig): void {
+export async function saveConfig(config: AppConfig): Promise<void> {
 	const configPath = getConfigPath();
 	const dir = path.dirname(configPath);
-	fs.mkdirSync(dir, { recursive: true });
-	fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+	mkdirSync(dir, { recursive: true });
+	await fs.writeFile(configPath, JSON.stringify(config, null, 2));
 }

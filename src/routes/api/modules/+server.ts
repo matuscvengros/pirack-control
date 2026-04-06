@@ -4,7 +4,7 @@ import { loadConfig } from '$lib/server/config';
 import { registry } from '$lib/modules/registry';
 
 export const GET: RequestHandler = async () => {
-	const config = loadConfig();
+	const config = await loadConfig();
 	const modules = registry.map((m) => ({
 		id: m.id,
 		name: m.name,
