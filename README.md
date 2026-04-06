@@ -1,6 +1,6 @@
 [![Build](https://github.com/matuscvengros/pirack-control/actions/workflows/build.yml/badge.svg)](https://github.com/matuscvengros/pirack-control/actions/workflows/build.yml)
 [![Release](https://github.com/matuscvengros/pirack-control/actions/workflows/release.yml/badge.svg)](https://github.com/matuscvengros/pirack-control/actions/workflows/release.yml)
-![Docker](https://img.shields.io/badge/docker-node%3A20--slim-blue?logo=docker)
+![Docker](https://img.shields.io/badge/docker-node%3A24--slim-blue?logo=docker)
 ![Platform](https://img.shields.io/badge/platform-linux%2Famd64%20%7C%20linux%2Farm64-lightgrey)
 ![License](https://img.shields.io/github/license/matuscvengros/pirack-control)
 
@@ -35,16 +35,17 @@ npm install
 npm run dev -- --host 0.0.0.0 --port 3000
 ```
 
-**Docker (pulls from GHCR by default):**
+**Docker (local build, default):**
 
 ```bash
-docker compose up -d
+docker compose up -d --build
 ```
 
-**Docker (local build):**
+**Docker (pull from GHCR):**
 
 ```bash
-PIRACK_IMAGE=pirack-control docker compose up -d --build
+PIRACK_IMAGE=ghcr.io/matuscvengros/pirack-control:latest docker compose pull && \
+PIRACK_IMAGE=ghcr.io/matuscvengros/pirack-control:latest docker compose up -d
 ```
 
 > On non-Pi hosts, remove the `devices` section from the compose file.
