@@ -44,9 +44,11 @@
 			{#each [15, 30, 45] as y}
 				<line x1="0" y1={y} x2="400" y2={y} stroke="white" stroke-opacity="0.03" stroke-width="0.5" />
 			{/each}
-			<polygon points={fillPath(history.map((h) => h.txRate), 400, 60)} fill="#4ade80" opacity="0.1" />
-			<polyline points={graphPath(history.map((h) => h.txRate), 400, 60)} fill="none" stroke="#4ade80" stroke-width="2" />
-			<polyline points={graphPath(history.map((h) => h.rxRate), 400, 60)} fill="none" stroke="#60a5fa" stroke-width="1.5" opacity="0.7" />
+			{#if history.length >= 2}
+				<polygon points={fillPath(history.map((h) => h.txRate), 400, 60)} fill="#4ade80" opacity="0.1" />
+				<polyline points={graphPath(history.map((h) => h.txRate), 400, 60)} fill="none" stroke="#4ade80" stroke-width="2" />
+				<polyline points={graphPath(history.map((h) => h.rxRate), 400, 60)} fill="none" stroke="#60a5fa" stroke-width="1.5" opacity="0.7" />
+			{/if}
 		</svg>
 	</div>
 	<div class="flex-shrink-0 ml-4 text-[11px] space-y-1.5">

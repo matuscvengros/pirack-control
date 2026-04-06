@@ -48,8 +48,3 @@ export function cleanup(): void {
 // Clean up GPIO on process exit
 process.on('SIGINT', () => { cleanup(); process.exit(0); });
 process.on('SIGTERM', () => { cleanup(); process.exit(0); });
-process.on('uncaughtException', (err) => {
-	console.error('[GPIO] Uncaught exception, cleaning up:', err);
-	cleanup();
-	process.exit(1);
-});

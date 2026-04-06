@@ -65,7 +65,7 @@
 		{:else if expandedModule === 'temperature'}
 			<TemperatureExpanded data={moduleData['temperature'] ?? {}} />
 		{:else if expandedModule === 'cooling'}
-			<CoolingExpanded data={moduleData['cooling'] ?? {}} />
+			<CoolingExpanded data={moduleData['cooling'] ?? {}} onRefresh={() => fetchModuleData('cooling')} />
 		{/if}
 	</div>
 {:else}

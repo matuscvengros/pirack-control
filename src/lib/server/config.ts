@@ -3,7 +3,7 @@ import { existsSync, mkdirSync } from 'fs';
 import path from 'path';
 import type { AppConfig } from '$lib/modules/types';
 
-function getDataDir(): string {
+export function getDataDir(): string {
 	return process.env.DATA_DIR || path.join(process.cwd(), 'data');
 }
 
@@ -22,9 +22,8 @@ export function getDefaultConfig(): AppConfig {
 			order: ['rack-info', 'uptime', 'network', 'temperature', 'cooling'],
 			enabled: ['rack-info', 'uptime', 'network', 'temperature', 'cooling'],
 			settings: {
-				network: { refreshInterval: 5000 },
+				network: {},
 				temperature: {
-					refreshInterval: 10000,
 					dangerThreshold: 45,
 					probes: []
 				},
@@ -38,12 +37,25 @@ export function getDefaultConfig(): AppConfig {
 
 export async function loadConfig(): Promise<AppConfig> {
 	const configPath = getConfigPath();
+	const defaults = getDefaultConfig();
 	try {
 		const raw = await fs.readFile(configPath, 'utf-8');
-		return JSON.parse(raw) as AppConfig;
+		const parsed = JSON.parse(raw);
+		// Deep merge with defaults
+		return {
+			general: { ...defaults.general, ...parsed.general },
+			modules: {
+				order: parsed.modules?.order ?? defaults.modules.order,
+				enabled: parsed.modules?.enabled ?? defaults.modules.enabled,
+				settings: {
+					...defaults.modules.settings,
+					...parsed.modules?.settings
+				}
+			}
+		};
 	} catch (e) {
 		console.warn('[Config] Could not read config file, using defaults:', (e as Error).message);
-		return getDefaultConfig();
+		return defaults;
 	}
 }
 

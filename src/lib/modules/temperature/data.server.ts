@@ -2,6 +2,7 @@ import fs from 'fs/promises';
 import { mkdirSync, readFileSync } from 'fs';
 import path from 'path';
 import type { ModuleConfig, ModuleData } from '$lib/modules/types';
+import { getDataDir } from '$lib/server/config';
 
 interface TemperatureReading {
 	timestamp: number;
@@ -10,10 +11,6 @@ interface TemperatureReading {
 
 interface TemperatureHistory {
 	readings: TemperatureReading[];
-}
-
-function getDataDir(): string {
-	return process.env.DATA_DIR || path.join(process.cwd(), 'data');
 }
 
 function getHistoryPath(): string {

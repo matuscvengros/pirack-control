@@ -1,5 +1,5 @@
 <script lang="ts">
-	let { data } = $props<{ data: Record<string, unknown> }>();
+	let { data, onRefresh } = $props<{ data: Record<string, unknown>; onRefresh?: () => void }>();
 	const isOn = $derived((data.on as boolean) ?? false);
 	const relays = $derived((data.relays as boolean[]) ?? [false, false, false, false]);
 	const gpioAvailable = $derived((data.gpioAvailable as boolean) ?? false);
@@ -11,7 +11,11 @@
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ action: 'toggle' })
 			});
-			if (!res.ok) console.error('Failed to toggle cooling');
+			if (res.ok) {
+				onRefresh?.();
+			} else {
+				console.error('Failed to toggle cooling');
+			}
 		} catch (e) {
 			console.error('Toggle error:', e);
 		}

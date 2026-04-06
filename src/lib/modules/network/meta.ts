@@ -5,7 +5,7 @@ const meta: ModuleMeta = {
 	name: 'Network',
 	icon: '📡',
 	expandable: true,
-	defaultConfig: { refreshInterval: 5000 }
+	defaultConfig: {}
 };
 
 export default meta;
