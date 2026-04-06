@@ -27,7 +27,7 @@ describe('rack-info data provider', () => {
 		const config = getDefaultConfig();
 		config.general.rackName = 'TEST-RACK';
 		config.general.rackSubtitle = '10.0.0.1';
-		saveConfig(config);
+		await saveConfig(config);
 
 		const data = await getData({});
 		expect(data.rackName).toBe('TEST-RACK');
