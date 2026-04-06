@@ -21,8 +21,13 @@ export const POST: RequestHandler = async ({ params, request }) => {
 	if (!meta) error(404, `Module "${id}" not found`);
 	const handler = actionHandlers[id];
 	if (!handler) error(400, `Module "${id}" does not support actions`);
-	const body = await request.json();
-	const { action, payload } = body as { action: string; payload?: unknown };
+	let body: { action?: string; payload?: unknown };
+	try {
+		body = await request.json();
+	} catch {
+		error(400, 'Invalid JSON body');
+	}
+	const { action, payload } = body;
 	if (!action) error(400, 'Missing "action" field');
 	const config = loadConfig();
 	const moduleConfig = config.modules.settings[id] ?? meta.defaultConfig;

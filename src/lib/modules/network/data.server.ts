@@ -41,8 +41,11 @@ export async function getData(_config: ModuleConfig): Promise<ModuleData> {
 	if (lastSample) {
 		const elapsed = (now - lastSample.timestamp) / 1000;
 		if (elapsed > 0) {
-			rxRate = (current.rxBytes - lastSample.rxBytes) / elapsed;
-			txRate = (current.txBytes - lastSample.txBytes) / elapsed;
+			const rawRx = (current.rxBytes - lastSample.rxBytes) / elapsed;
+			const rawTx = (current.txBytes - lastSample.txBytes) / elapsed;
+			// Guard against negative rates from counter wrap or system restart
+			rxRate = rawRx >= 0 ? rawRx : 0;
+			txRate = rawTx >= 0 ? rawTx : 0;
 		}
 	}
 

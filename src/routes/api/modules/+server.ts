@@ -13,6 +13,11 @@ export const GET: RequestHandler = async () => {
 		enabled: config.modules.enabled.includes(m.id),
 		order: config.modules.order.indexOf(m.id)
 	}));
-	modules.sort((a, b) => a.order - b.order);
+	modules.sort((a, b) => {
+		// Modules not in the order array (-1) sort to the end
+		const aOrder = a.order === -1 ? Infinity : a.order;
+		const bOrder = b.order === -1 ? Infinity : b.order;
+		return aOrder - bOrder;
+	});
 	return json(modules);
 };

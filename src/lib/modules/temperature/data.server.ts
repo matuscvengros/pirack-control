@@ -52,17 +52,29 @@ export async function getData(config: ModuleConfig): Promise<ModuleData> {
 	const currentTemp = readSystemTemp();
 	const history = loadHistory();
 
+	const now = Date.now();
+	let dirty = false;
+
 	if (currentTemp !== null) {
 		const lastReading = history.readings[history.readings.length - 1];
-		const now = Date.now();
 		if (!lastReading || now - lastReading.timestamp >= 60000) {
 			history.readings.push({ timestamp: now, value: currentTemp });
-			history.readings = pruneOldReadings(history.readings);
-			saveHistory(history);
+			dirty = true;
 		}
 	}
 
-	const readings = pruneOldReadings(history.readings);
+	// Always prune stale readings (even when no sensor) so the file doesn't grow unbounded
+	const prunedReadings = pruneOldReadings(history.readings);
+	if (prunedReadings.length !== history.readings.length) {
+		dirty = true;
+	}
+	history.readings = prunedReadings;
+
+	if (dirty) {
+		saveHistory(history);
+	}
+
+	const readings = prunedReadings;
 	const values = readings.map((r) => r.value);
 	const high = values.length > 0 ? Math.max(...values) : null;
 	const low = values.length > 0 ? Math.min(...values) : null;

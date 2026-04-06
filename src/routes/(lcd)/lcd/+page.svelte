@@ -55,7 +55,9 @@
 {#if expandedModule}
 	<div class="flex h-full w-full relative">
 		<HomeButton onclick={goHome} />
+		{#key expandedModule}
 		<AutoReturn seconds={data.config.lcdAutoReturnSeconds} onReturn={goHome} />
+	{/key}
 		{#if expandedModule === 'uptime'}
 			<UptimeExpanded data={moduleData['uptime'] ?? {}} />
 		{:else if expandedModule === 'network'}
