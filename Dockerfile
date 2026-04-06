@@ -1,5 +1,5 @@
 # Build stage
-FROM node:24-slim AS build
+FROM node:22-slim AS build
 
 RUN apt-get update && apt-get install -y --no-install-recommends python3 build-essential && rm -rf /var/lib/apt/lists/*
 
@@ -7,11 +7,10 @@ WORKDIR /dashboard
 COPY package*.json ./
 RUN npm ci
 COPY . .
-# Note: || true works around Node 24 segfault on process exit after successful build
-RUN npm run build || [ -d build ]
+RUN npm run build
 
 # Runtime stage
-FROM node:24-slim AS runtime
+FROM node:22-slim AS runtime
 
 # Create non-root user with gpio group access
 RUN groupadd -r gpio && useradd -m -s /bin/bash -g gpio pi
