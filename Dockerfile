@@ -19,6 +19,12 @@ COPY --from=build /app/package.json ./
 ENV PORT=3000
 ENV DATA_DIR=/app/data
 
+# Create non-root user with gpio group access
+RUN groupadd -r gpio && useradd -r -g gpio -G node pirack && \
+    mkdir -p /app/data && chown -R pirack:gpio /app
+
+USER pirack
+
 EXPOSE 3000
 
 CMD ["node", "build"]
