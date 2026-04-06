@@ -14,26 +14,28 @@
 	}
 </script>
 
-<div class="flex items-center px-5 gap-3.5">
-	<div class="flex-shrink-0">
-		<div class="text-[9px] text-[#4a5580] uppercase tracking-[2px] mb-2">Temperature</div>
-		<div class="flex items-baseline gap-0.5">
-			{#if current !== null}
-				<span class="text-[34px] font-bold text-[#fb923c] leading-none">{Math.round(current)}</span>
-				<span class="text-[16px] text-[#9a5c2e] font-medium">°C</span>
-			{:else}
-				<span class="text-[24px] text-[#4a5580]">--</span>
+<div class="flex flex-col h-full px-5">
+	<div class="text-[9px] text-[#4a5580] uppercase tracking-[2px] text-center pt-[70px] mb-8">Temperature</div>
+	<div class="flex items-center gap-3.5">
+		<div class="flex-shrink-0">
+			<div class="flex items-baseline gap-0.5">
+				{#if current !== null}
+					<span class="text-[34px] font-bold text-[#fb923c] leading-none">{Math.round(current)}</span>
+					<span class="text-[16px] text-[#9a5c2e] font-medium">°C</span>
+				{:else}
+					<span class="text-[24px] text-[#4a5580]">--</span>
+				{/if}
+			</div>
+			{#if high !== null}
+				<div class="text-[9px] text-[#4a5580] mt-1">▲ {high}° peak</div>
 			{/if}
 		</div>
-		{#if high !== null}
-			<div class="text-[9px] text-[#4a5580] mt-1">▲ {high}° peak</div>
-		{/if}
-	</div>
-	<div class="flex-1 h-[65%] max-w-[140px]">
-		<svg width="100%" height="100%" viewBox="0 0 100 40" preserveAspectRatio="none">
-			{#if history.length >= 2}
-				<polyline points={sparklinePath(history.map((h) => h.value))} fill="none" stroke="#fb923c" stroke-width="1.5" />
-			{/if}
-		</svg>
+		<div class="flex-1 h-[40px] max-w-[140px]">
+			<svg width="100%" height="100%" viewBox="0 0 100 40" preserveAspectRatio="none">
+				{#if history.length >= 2}
+					<polyline points={sparklinePath(history.map((h) => h.value))} fill="none" stroke="#fb923c" stroke-width="1.5" />
+				{/if}
+			</svg>
+		</div>
 	</div>
 </div>
