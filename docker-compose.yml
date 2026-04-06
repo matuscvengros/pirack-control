@@ -1,6 +1,8 @@
 services:
   pirack-control:
-    build: .
+    image: ${PIRACK_IMAGE:-ghcr.io/matuscvengros/pirack-control:latest}
+    build:
+      context: .
     container_name: pirack-control
     ports:
       - "${PORT:-3000}:3000"

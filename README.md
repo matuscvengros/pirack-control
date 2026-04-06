@@ -35,16 +35,16 @@ npm install
 npm run dev -- --host 0.0.0.0 --port 3000
 ```
 
-**Docker (local build):**
+**Docker (pulls from GHCR by default):**
 
 ```bash
 docker compose up -d
 ```
 
-**Docker (GitHub Container Registry):**
+**Docker (local build):**
 
 ```bash
-docker compose -f docker-compose.ghcr.yml up -d
+PIRACK_IMAGE=pirack-control docker compose up -d --build
 ```
 
 > On non-Pi hosts, remove the `devices` section from the compose file.
