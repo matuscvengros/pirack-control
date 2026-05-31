@@ -88,7 +88,9 @@ describe('config extended', () => {
 		expect(config.modules.settings.temperature).toEqual({ dangerThreshold: 50 });
 		expect(config.modules.settings.newModule).toEqual({ key: 'value' });
 		// Default settings for modules not in partial should be preserved
-		expect(config.modules.settings.network).toEqual({});
+		expect(config.modules.settings.network).toEqual(
+			getDefaultConfig().modules.settings.network
+		);
 	});
 
 	it('config with only general section uses default modules', async () => {

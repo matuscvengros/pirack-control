@@ -21,6 +21,7 @@ Tap any panel to enter a detailed view:
 | Rack Info | Name + subtitle | — |
 | Uptime | Days + HH:MM:SS | Large display |
 | Network | Upload/download + sparkline | Full traffic graph |
+| └ source | Whole-house internet (UDM Pro WAN) or this Pi's NIC | — |
 | Temperature | Current + 24h mini chart | 24h graph with stats |
 | Cooling | ON/OFF badge | Toggle switch + relay status |
 
@@ -61,3 +62,25 @@ chromium-browser --kiosk --noerrdialogs --disable-infobars http://localhost:3000
 ```
 
 App config persists in `./data/config.json` (mounted as a Docker volume).
+
+## Network (WAN) module — whole-house internet bandwidth
+
+The Network module can show total internet throughput in/out of the house, read
+from a UniFi OS console (UDM Pro / UDR / UXG) instead of the Pi's own NIC.
+
+1. In the UniFi console, create a read-only **local API key**:
+   Settings → Control Plane → Integrations → API Keys.
+2. Open `http://<host>:3000/config`, expand the **Network** module settings, and set:
+   - **Source:** *UDM Pro — whole-house internet (WAN)*
+   - **UDM Pro host / IP:** e.g. `192.168.1.1`
+   - **API key:** paste the key (or leave blank and set the `UDM_API_KEY` env var
+     to keep the secret out of `config.json`)
+   - **Poll interval:** `2000` ms (1–2s gives a near-real-time graph)
+   - **Units:** Mbps or MB/s
+3. Save. The panel polls the console's local Network API
+   (`/proxy/network/api/s/<site>/stat/health`) on its own timer and shows live
+   WAN up/download, the WAN IP, and latency.
+
+The console's self-signed certificate is accepted by default (toggle off if you've
+installed a trusted cert). The official UniFi API is rate-limited to ~100 req/min,
+so a 1–2s interval stays well within budget.

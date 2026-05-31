@@ -5,6 +5,12 @@ services:
     build: .
     ports:
       - "${PORT:-3000}:3000"
+    environment:
+      # UDM Pro connection for the Network (WAN) module. Leave any unset to
+      # configure on the /config page instead.
+      - UDM_API_KEY=${UDM_API_KEY:-}
+      - UDM_HOST=${UDM_HOST:-}
+      - UDM_SITE=${UDM_SITE:-}
     volumes:
       - ./data:/home/pi/dashboard/data
     devices:
