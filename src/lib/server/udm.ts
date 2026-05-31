@@ -1,7 +1,7 @@
 import https from 'node:https';
 
 /**
- * Client for reading whole-house WAN throughput from a UniFi OS console
+ * Client for reading total internet (WAN) throughput from a UniFi OS console
  * (UDM Pro / UDR / UXG) using the local Network API.
  *
  * On UniFi OS the Network controller is proxied under `/proxy/network/...`.

@@ -1,12 +1,17 @@
 {
 	"name": "pirack-control",
 	"private": true,
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
+		"clean": "rm -rf build .svelte-kit node_modules",
+		"start": "node --env-file-if-exists=.env build",
+		"serve": "bash scripts/serve.sh",
+		"stop": "bash scripts/stop.sh",
+		"status": "bash scripts/status.sh",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"

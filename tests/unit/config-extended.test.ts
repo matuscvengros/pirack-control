@@ -66,7 +66,7 @@ describe('config extended', () => {
 
 		const config = await loadConfig();
 		expect(config.general.rackSubtitle).toBe('custom-subtitle');
-		expect(config.general.rackName).toBe('HOME-LAB'); // default
+		expect(config.general.rackName).toBe('PIRACK'); // default
 		expect(config.general.lcdAutoReturnSeconds).toBe(60); // default
 	});
 
@@ -84,7 +84,7 @@ describe('config extended', () => {
 
 		const config = await loadConfig();
 		expect(config.general.lcdAutoReturnSeconds).toBe(120);
-		expect(config.general.rackName).toBe('HOME-LAB');
+		expect(config.general.rackName).toBe('PIRACK');
 		expect(config.modules.settings.temperature).toEqual({ dangerThreshold: 50 });
 		expect(config.modules.settings.newModule).toEqual({ key: 'value' });
 		// Default settings for modules not in partial should be preserved
@@ -124,7 +124,7 @@ describe('config extended', () => {
 
 	it('getDefaultConfig general values are correct', () => {
 		const config = getDefaultConfig();
-		expect(config.general.rackName).toBe('HOME-LAB');
+		expect(config.general.rackName).toBe('PIRACK');
 		expect(config.general.rackSubtitle).toBe('192.168.1.50');
 		expect(config.general.lcdAutoReturnSeconds).toBe(60);
 	});

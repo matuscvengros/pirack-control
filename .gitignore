@@ -13,5 +13,6 @@ CLAUDE.md
 *.pem
 *.key
 *.log
+.server.pid
 .DS_Store
 Thumbs.db

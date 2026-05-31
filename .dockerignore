@@ -8,3 +8,8 @@ data
 docs
 tests
 *.md
+.env
+.env.*
+.npmrc
+.server.pid
+*.log

@@ -99,7 +99,7 @@ function getLocalData(units: RateUnits, extra: Record<string, unknown> = {}): Mo
 }
 
 // ---------------------------------------------------------------------------
-// UDM mode — polls the UniFi console for whole-house WAN throughput on its own
+// UDM mode — polls the UniFi console for total internet (WAN) throughput on its own
 // timer (independent of the dashboard's refresh), keeping a rolling history.
 // ---------------------------------------------------------------------------
 

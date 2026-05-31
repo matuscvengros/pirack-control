@@ -20,13 +20,13 @@ describe('config edge cases', () => {
 	it('returns default config for corrupted JSON file', async () => {
 		fs.writeFileSync(TEST_CONFIG_PATH, 'NOT VALID JSON {{{');
 		const config = await loadConfig();
-		expect(config.general.rackName).toBe('HOME-LAB');
+		expect(config.general.rackName).toBe('PIRACK');
 	});
 
 	it('returns default config for empty file', async () => {
 		fs.writeFileSync(TEST_CONFIG_PATH, '');
 		const config = await loadConfig();
-		expect(config.general.rackName).toBe('HOME-LAB');
+		expect(config.general.rackName).toBe('PIRACK');
 	});
 
 	it('creates data directory if it does not exist on save', async () => {
@@ -43,7 +43,7 @@ describe('config edge cases', () => {
 		const a = getDefaultConfig();
 		const b = getDefaultConfig();
 		a.general.rackName = 'MUTATED';
-		expect(b.general.rackName).toBe('HOME-LAB');
+		expect(b.general.rackName).toBe('PIRACK');
 	});
 
 	it('default config has all five modules in order', () => {

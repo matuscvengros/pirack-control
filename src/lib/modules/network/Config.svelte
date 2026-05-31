@@ -14,7 +14,7 @@
 			value={source}
 			onchange={(e) => (settings.source = e.currentTarget.value)}
 		>
-			<option value="udm">UDM Pro — whole-house internet (WAN)</option>
+			<option value="udm">UniFi gateway — internet (WAN)</option>
 			<option value="local">This Pi's network interface</option>
 		</select>
 	</label>

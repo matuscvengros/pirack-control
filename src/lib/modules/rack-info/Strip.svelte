@@ -1,6 +1,6 @@
 <script lang="ts">
 	let { data } = $props<{ data: Record<string, unknown> }>();
-	const rackName = $derived((data.rackName as string) ?? 'HOME-LAB');
+	const rackName = $derived((data.rackName as string) ?? 'PIRACK');
 	const rackSubtitle = $derived((data.rackSubtitle as string) ?? '');
 </script>
 

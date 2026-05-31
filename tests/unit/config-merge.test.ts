@@ -125,7 +125,7 @@ describe('config deep merge behavior', () => {
 		(a.modules.settings.cooling as Record<string, unknown>).relayLabels = [];
 
 		// b should be unaffected
-		expect(b.general.rackName).toBe('HOME-LAB');
+		expect(b.general.rackName).toBe('PIRACK');
 		expect(b.modules.order).not.toContain('extra-module');
 		expect(b.modules.enabled).not.toContain('extra-module');
 	});

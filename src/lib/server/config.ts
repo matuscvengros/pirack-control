@@ -14,7 +14,7 @@ function getConfigPath(): string {
 export function getDefaultConfig(): AppConfig {
 	return {
 		general: {
-			rackName: 'HOME-LAB',
+			rackName: 'PIRACK',
 			rackSubtitle: '192.168.1.50',
 			lcdAutoReturnSeconds: 60
 		},

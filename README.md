@@ -6,7 +6,7 @@
 
 # PiRack Control
 
-A dashboard for the [GeeekPi 6.91" 1424×280 LCD Touch Screen](https://www.amazon.com.au/dp/B0G337KQS6) 1U rack display, built with SvelteKit. Runs on a Raspberry Pi, serves two interfaces: a touch-optimised dashboard for the LCD and a configuration page for LAN browsers.
+A dashboard for a GeeekPi 6.91" 1424×280 LCD touch screen 1U rack display, built with SvelteKit. Runs on a Raspberry Pi, serves two interfaces: a touch-optimised dashboard for the LCD and a configuration page for LAN browsers.
 
 ![Dashboard](assets/dashboard.png)
 
@@ -21,7 +21,7 @@ Tap any panel to enter a detailed view:
 | Rack Info | Name + subtitle | — |
 | Uptime | Days + HH:MM:SS | Large display |
 | Network | Upload/download + sparkline | Full traffic graph |
-| └ source | Whole-house internet (UDM Pro WAN) or this Pi's NIC | — |
+| └ source | Internet (WAN) via a UniFi gateway, or the host NIC | — |
 | Temperature | Current + 24h mini chart | 24h graph with stats |
 | Cooling | ON/OFF badge | Toggle switch + relay status |
 
@@ -50,6 +50,20 @@ PIRACK_IMAGE=ghcr.io/matuscvengros/pirack-control:latest docker compose up -d --
 
 > On non-Pi hosts, remove the `devices` section from the compose file.
 
+**Bare Node (no Docker):**
+
+```bash
+npm ci            # install dependencies
+npm run build     # compile
+npm run serve     # start detached — keeps running after you close the terminal
+```
+
+`npm run serve` runs the server in the background (logs to `server.log`); check it
+with `npm run status` and stop it with `npm run stop`. Use `npm start` to run in the
+foreground instead. Environment variables (e.g. `UDM_HOST`, `UDM_API_KEY`) are read
+from `.env` automatically. `npm run clean` removes `build/`, `.svelte-kit/`, and
+`node_modules/` for a fresh start.
+
 ## Usage
 
 - **Dashboard:** `http://<host>:3000/dashboard`
@@ -58,8 +72,32 @@ PIRACK_IMAGE=ghcr.io/matuscvengros/pirack-control:latest docker compose up -d --
 On the Pi, launch Chromium in kiosk mode to display the dashboard on the LCD:
 
 ```bash
-chromium-browser --kiosk --noerrdialogs --disable-infobars http://localhost:3000/dashboard
+chromium --kiosk --noerrdialogs --disable-infobars http://localhost:3000/dashboard
 ```
+
+> The binary is `chromium` on current Raspberry Pi OS / Debian (older releases
+> called it `chromium-browser`).
+
+Chromium needs a running X session on the Pi's display. If you launch it from a
+plain console or over SSH you'll get `Missing X server or $DISPLAY` — point it at
+the display first:
+
+```bash
+DISPLAY=:0 chromium --kiosk --noerrdialogs --disable-infobars http://localhost:3000/dashboard
+```
+
+If the Pi has no desktop running at all, start a bare X server with just Chromium
+(install once: `sudo apt install -y xserver-xorg xinit chromium`):
+
+```bash
+xinit chromium --kiosk --noerrdialogs --disable-infobars http://localhost:3000/dashboard -- :0
+```
+
+For a permanent kiosk, enable desktop autologin (`raspi-config` → *Boot / Auto
+Login* → *Desktop Autologin*) and add the `chromium --kiosk …` line to your session
+autostart so it launches on boot.
+
+> Replace `localhost` with the server's address if the app runs on a different host.
 
 App config persists in `./data/config.json` (mounted as a Docker volume).
 

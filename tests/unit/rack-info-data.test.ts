@@ -19,7 +19,7 @@ describe('rack-info data provider', () => {
 
 	it('returns default rack name when no config exists', async () => {
 		const data = await getData({});
-		expect(data.rackName).toBe('HOME-LAB');
+		expect(data.rackName).toBe('PIRACK');
 		expect(data.rackSubtitle).toBe('192.168.1.50');
 	});
 

@@ -19,7 +19,7 @@ describe('config', () => {
 
 	it('returns default config when no file exists', async () => {
 		const config = await loadConfig();
-		expect(config.general.rackName).toBe('HOME-LAB');
+		expect(config.general.rackName).toBe('PIRACK');
 		expect(config.modules.order).toContain('rack-info');
 	});
 
