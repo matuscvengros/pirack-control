@@ -6,7 +6,8 @@ describe('appConfigSchema extended', () => {
 		general: {
 			rackName: 'MY-RACK',
 			rackSubtitle: '192.168.1.1',
-			lcdAutoReturnSeconds: 60
+			lcdAutoReturnSeconds: 60,
+			uiRefreshSeconds: 1
 		},
 		modules: {
 			order: ['rack-info', 'uptime'],
@@ -32,6 +33,12 @@ describe('appConfigSchema extended', () => {
 	it('rejects when lcdAutoReturnSeconds is missing entirely', () => {
 		const config = structuredClone(validConfig);
 		delete (config.general as Record<string, unknown>).lcdAutoReturnSeconds;
+		expect(appConfigSchema.safeParse(config).success).toBe(false);
+	});
+
+	it('rejects when uiRefreshSeconds is missing entirely', () => {
+		const config = structuredClone(validConfig);
+		delete (config.general as Record<string, unknown>).uiRefreshSeconds;
 		expect(appConfigSchema.safeParse(config).success).toBe(false);
 	});
 

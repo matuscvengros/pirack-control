@@ -30,6 +30,7 @@ export interface AppConfig {
 		rackName: string;
 		rackSubtitle: string;
 		lcdAutoReturnSeconds: number;
+		uiRefreshSeconds: number;
 	};
 	modules: {
 		order: string[];

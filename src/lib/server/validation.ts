@@ -7,7 +7,8 @@ export const appConfigSchema = z.object({
 	general: z.object({
 		rackName: z.string().min(1).max(64),
 		rackSubtitle: z.string().max(128),
-		lcdAutoReturnSeconds: z.number().int().min(10).max(300)
+		lcdAutoReturnSeconds: z.number().int().min(10).max(300),
+		uiRefreshSeconds: z.number().int().min(1).max(60)
 	}),
 	modules: z.object({
 		order: z.array(z.string().max(32)).max(20),

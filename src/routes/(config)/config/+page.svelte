@@ -7,6 +7,8 @@
 	import CoolingConfig from '$lib/modules/cooling/Config.svelte';
 
 	let { data }: { data: PageData } = $props();
+	// Intentional editable draft seeded from the loaded config (initial value only).
+	// svelte-ignore state_referenced_locally
 	let config = $state(structuredClone(data.config));
 	let saving = $state(false);
 	let saved = $state(false);
@@ -61,6 +63,10 @@
 		<label class="block">
 			<span class="text-sm text-[#94a3b8]">LCD Auto-Return (seconds)</span>
 			<input type="number" class="mt-1 block w-full bg-[#1a1f2e] border border-[#2a3040] rounded px-3 py-2 text-sm text-[#e2e8f0]" bind:value={config.general.lcdAutoReturnSeconds} min="10" max="300" />
+		</label>
+		<label class="block">
+			<span class="text-sm text-[#94a3b8]">UI Refresh Interval (seconds)</span>
+			<input type="number" class="mt-1 block w-full bg-[#1a1f2e] border border-[#2a3040] rounded px-3 py-2 text-sm text-[#e2e8f0]" bind:value={config.general.uiRefreshSeconds} min="1" max="60" />
 		</label>
 	</div>
 </section>

@@ -6,7 +6,8 @@ describe('appConfigSchema', () => {
 		general: {
 			rackName: 'MY-RACK',
 			rackSubtitle: '192.168.1.1',
-			lcdAutoReturnSeconds: 60
+			lcdAutoReturnSeconds: 60,
+			uiRefreshSeconds: 1
 		},
 		modules: {
 			order: ['rack-info', 'uptime'],
@@ -98,6 +99,34 @@ describe('appConfigSchema', () => {
 		const config300 = structuredClone(validConfig);
 		config300.general.lcdAutoReturnSeconds = 300;
 		expect(appConfigSchema.safeParse(config300).success).toBe(true);
+	});
+
+	it('rejects uiRefreshSeconds below 1', () => {
+		const config = structuredClone(validConfig);
+		config.general.uiRefreshSeconds = 0;
+		expect(appConfigSchema.safeParse(config).success).toBe(false);
+	});
+
+	it('rejects uiRefreshSeconds above 60', () => {
+		const config = structuredClone(validConfig);
+		config.general.uiRefreshSeconds = 61;
+		expect(appConfigSchema.safeParse(config).success).toBe(false);
+	});
+
+	it('accepts uiRefreshSeconds at boundaries (1 and 60)', () => {
+		const config1 = structuredClone(validConfig);
+		config1.general.uiRefreshSeconds = 1;
+		expect(appConfigSchema.safeParse(config1).success).toBe(true);
+
+		const config60 = structuredClone(validConfig);
+		config60.general.uiRefreshSeconds = 60;
+		expect(appConfigSchema.safeParse(config60).success).toBe(true);
+	});
+
+	it('rejects non-integer uiRefreshSeconds', () => {
+		const config = structuredClone(validConfig);
+		config.general.uiRefreshSeconds = 1.5;
+		expect(appConfigSchema.safeParse(config).success).toBe(false);
 	});
 
 	it('rejects non-integer lcdAutoReturnSeconds', () => {

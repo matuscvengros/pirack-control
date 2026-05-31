@@ -127,6 +127,7 @@ describe('config extended', () => {
 		expect(config.general.rackName).toBe('PIRACK');
 		expect(config.general.rackSubtitle).toBe('192.168.1.50');
 		expect(config.general.lcdAutoReturnSeconds).toBe(60);
+		expect(config.general.uiRefreshSeconds).toBe(1);
 	});
 
 	it('getDefaultConfig modules.settings has expected keys', () => {

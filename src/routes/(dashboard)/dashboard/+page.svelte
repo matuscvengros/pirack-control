@@ -36,7 +36,7 @@
 
 	$effect(() => {
 		fetchAllData();
-		const interval = setInterval(fetchAllData, 5000);
+		const interval = setInterval(fetchAllData, data.config.uiRefreshSeconds * 1000);
 		return () => clearInterval(interval);
 	});
 

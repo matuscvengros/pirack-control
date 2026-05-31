@@ -1,5 +1,5 @@
 import fs from 'fs/promises';
-import { existsSync, mkdirSync } from 'fs';
+import { mkdirSync } from 'fs';
 import path from 'path';
 import type { AppConfig } from '$lib/modules/types';
 
@@ -16,7 +16,8 @@ export function getDefaultConfig(): AppConfig {
 		general: {
 			rackName: 'PIRACK',
 			rackSubtitle: '192.168.1.50',
-			lcdAutoReturnSeconds: 60
+			lcdAutoReturnSeconds: 60,
+			uiRefreshSeconds: 1
 		},
 		modules: {
 			order: ['rack-info', 'uptime', 'network', 'temperature', 'cooling'],
