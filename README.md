@@ -63,24 +63,34 @@ chromium-browser --kiosk --noerrdialogs --disable-infobars http://localhost:3000
 
 App config persists in `./data/config.json` (mounted as a Docker volume).
 
-## Network (WAN) module — whole-house internet bandwidth
+## Network module — internet bandwidth from UniFi
 
-The Network module can show total internet throughput in/out of the house, read
-from a UniFi OS console (UDM Pro / UDR / UXG) instead of the Pi's own NIC.
+The Network module integrates with the **UniFi ecosystem**. Pointed at a UniFi OS
+gateway (UDM / UDR / UXG), it reports total internet (WAN) throughput in and out of
+your network; without one it falls back to the host's own NIC.
 
-1. In the UniFi console, create a read-only **local API key**:
-   Settings → Control Plane → Integrations → API Keys.
-2. Open `http://<host>:3000/config`, expand the **Network** module settings, and set:
-   - **Source:** *UDM Pro — whole-house internet (WAN)*
-   - **UDM Pro host / IP:** e.g. `192.168.1.1`
-   - **API key:** paste the key (or leave blank and set the `UDM_API_KEY` env var
-     to keep the secret out of `config.json`)
-   - **Poll interval:** `2000` ms (1–2s gives a near-real-time graph)
-   - **Units:** Mbps or MB/s
-3. Save. The panel polls the console's local Network API
-   (`/proxy/network/api/s/<site>/stat/health`) on its own timer and shows live
-   WAN up/download, the WAN IP, and latency.
+**1. Create a read-only API key.** On recent UniFi versions the Integrations page
+isn't shown in the menu — open it directly in a browser:
 
-The console's self-signed certificate is accepted by default (toggle off if you've
-installed a trusted cert). The official UniFi API is rate-limited to ~100 req/min,
-so a 1–2s interval stays well within budget.
+```
+https://<unifi-console-address>/network/default/integrations
+```
+
+Create an API key and copy it (it is shown only once).
+
+**2. Configure the module.** Either set environment variables — recommended, since
+it keeps the key out of `config.json`:
+
+```
+UDM_HOST=<gateway-address>
+UDM_API_KEY=<your-api-key>
+```
+
+…or open `http://<host>:3000/config`, expand **Network**, choose the UniFi (WAN)
+source, and enter the gateway address, API key, poll interval, and units (Mbps or
+MB/s).
+
+The module polls the gateway's local API on its own timer and shows live WAN
+up/download plus WAN IP, ISP, and latency. The gateway's self-signed certificate is
+accepted by default. The UniFi API is rate-limited (~100 req/min), so a 1–2s
+interval is comfortable.
