@@ -22,7 +22,15 @@ export function getDefaultConfig(): AppConfig {
 			order: ['rack-info', 'uptime', 'network', 'temperature', 'cooling'],
 			enabled: ['rack-info', 'uptime', 'network', 'temperature', 'cooling'],
 			settings: {
-				network: {},
+				network: {
+					source: 'udm',
+					udmHost: '',
+					apiKey: '',
+					site: 'default',
+					pollIntervalMs: 2000,
+					units: 'bits',
+					insecureTLS: true
+				},
 				temperature: {
 					dangerThreshold: 45,
 					probes: []

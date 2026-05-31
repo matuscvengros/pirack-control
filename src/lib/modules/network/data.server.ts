@@ -1,6 +1,26 @@
 import os from 'os';
 import fs from 'fs';
 import type { ModuleConfig, ModuleData } from '$lib/modules/types';
+import { fetchWanRates, type WanRates } from '$lib/server/udm';
+import type { RateUnits } from './format';
+
+const MAX_HISTORY = 60;
+
+interface RatePoint {
+	timestamp: number;
+	rxRate: number;
+	txRate: number;
+}
+
+function resolveUnits(config: ModuleConfig): RateUnits {
+	return config.units === 'bytes' ? 'bytes' : 'bits';
+}
+
+// ---------------------------------------------------------------------------
+// Local mode — measures the Pi's own NIC via /proc/net/dev. Used as the
+// fallback when no UDM source is configured. Behaviour is unchanged from the
+// original module: one sample is taken per getData() call.
+// ---------------------------------------------------------------------------
 
 interface NetSample {
 	timestamp: number;
@@ -9,8 +29,7 @@ interface NetSample {
 }
 
 let lastSample: NetSample | null = null;
-const history: { timestamp: number; rxRate: number; txRate: number }[] = [];
-const MAX_HISTORY = 60;
+const localHistory: RatePoint[] = [];
 
 function getNetworkBytes(): { rxBytes: number; txBytes: number } {
 	try {
@@ -32,7 +51,7 @@ function getNetworkBytes(): { rxBytes: number; txBytes: number } {
 	}
 }
 
-export async function getData(_config: ModuleConfig): Promise<ModuleData> {
+function getLocalData(units: RateUnits, extra: Record<string, unknown> = {}): ModuleData {
 	const now = Date.now();
 	const current = getNetworkBytes();
 	let rxRate = 0;
@@ -50,8 +69,8 @@ export async function getData(_config: ModuleConfig): Promise<ModuleData> {
 	}
 
 	lastSample = { timestamp: now, ...current };
-	history.push({ timestamp: now, rxRate, txRate });
-	if (history.length > MAX_HISTORY) history.shift();
+	localHistory.push({ timestamp: now, rxRate, txRate });
+	if (localHistory.length > MAX_HISTORY) localHistory.shift();
 
 	const interfaces = os.networkInterfaces();
 	let primaryIp = '0.0.0.0';
@@ -65,13 +84,146 @@ export async function getData(_config: ModuleConfig): Promise<ModuleData> {
 	}
 
 	return {
+		source: 'local',
+		units,
 		rxRate: Math.round(rxRate),
 		txRate: Math.round(txRate),
 		primaryIp,
-		history: history.map((h) => ({
+		history: localHistory.map((h) => ({
 			timestamp: h.timestamp,
 			rxRate: Math.round(h.rxRate),
 			txRate: Math.round(h.txRate)
+		})),
+		...extra
+	};
+}
+
+// ---------------------------------------------------------------------------
+// UDM mode — polls the UniFi console for whole-house WAN throughput on its own
+// timer (independent of the dashboard's refresh), keeping a rolling history.
+// ---------------------------------------------------------------------------
+
+const UDM_MAX_HISTORY = 120;
+
+interface UdmPollerConfig {
+	host: string;
+	apiKey: string;
+	site: string;
+	intervalMs: number;
+	insecureTLS: boolean;
+}
+
+interface UdmState {
+	key: string;
+	timer: ReturnType<typeof setInterval> | null;
+	history: RatePoint[];
+	latest: WanRates | null;
+	lastError: string | null;
+	lastOk: number | null;
+}
+
+let udm: UdmState | null = null;
+
+function pollerKey(cfg: UdmPollerConfig): string {
+	return [cfg.host, cfg.site, cfg.intervalMs, cfg.insecureTLS, cfg.apiKey ? 'k' : '-'].join('|');
+}
+
+async function pollOnce(cfg: UdmPollerConfig): Promise<void> {
+	if (!udm) return;
+	try {
+		const rates = await fetchWanRates({
+			host: cfg.host,
+			apiKey: cfg.apiKey,
+			site: cfg.site,
+			insecureTLS: cfg.insecureTLS
+		});
+		udm.latest = rates;
+		udm.lastError = null;
+		udm.lastOk = Date.now();
+		udm.history.push({
+			timestamp: Date.now(),
+			rxRate: Math.round(rates.rxRate),
+			txRate: Math.round(rates.txRate)
+		});
+		while (udm.history.length > UDM_MAX_HISTORY) udm.history.shift();
+	} catch (e) {
+		udm.lastError = (e as Error).message;
+	}
+}
+
+function ensurePoller(cfg: UdmPollerConfig): void {
+	const key = pollerKey(cfg);
+	if (udm && udm.key === key) return;
+
+	// Config changed (or first run) — (re)start the poller.
+	if (udm?.timer) clearInterval(udm.timer);
+	udm = { key, timer: null, history: [], latest: null, lastError: null, lastOk: null };
+
+	void pollOnce(cfg);
+	const interval = Math.max(500, cfg.intervalMs);
+	udm.timer = setInterval(() => void pollOnce(cfg), interval);
+	// Don't keep the process (or test runner) alive just for polling.
+	udm.timer.unref?.();
+}
+
+function getUdmData(config: ModuleConfig, units: RateUnits): ModuleData {
+	// Each field may come from the saved config (set on the /config page) or from
+	// an environment variable, so a server can be configured entirely via `.env`.
+	const host = (String(config.udmHost ?? '').trim() || process.env.UDM_HOST) ?? '';
+	const apiKey = (String(config.apiKey ?? '').trim() || process.env.UDM_API_KEY) ?? '';
+	const site = String(config.site ?? '').trim() || process.env.UDM_SITE || 'default';
+
+	if (!host || !apiKey) {
+		return {
+			source: 'udm',
+			units,
+			configured: false,
+			connected: false,
+			error: !host ? 'WAN host not set' : 'API key not set',
+			rxRate: 0,
+			txRate: 0,
+			wanIp: '',
+			primaryIp: '',
+			latency: null,
+			history: []
+		};
+	}
+
+	ensurePoller({
+		host,
+		apiKey,
+		site,
+		intervalMs: typeof config.pollIntervalMs === 'number' ? config.pollIntervalMs : 2000,
+		insecureTLS: config.insecureTLS !== false
+	});
+
+	const latest = udm?.latest ?? null;
+	return {
+		source: 'udm',
+		units,
+		configured: true,
+		connected: udm?.lastError == null && latest != null,
+		error: udm?.lastError ?? null,
+		rxRate: latest ? Math.round(latest.rxRate) : 0,
+		txRate: latest ? Math.round(latest.txRate) : 0,
+		wanIp: latest?.wanIp ?? '',
+		primaryIp: latest?.wanIp ?? '',
+		latency: latest?.latency ?? null,
+		isp: latest?.isp ?? '',
+		history: (udm?.history ?? []).map((h) => ({
+			timestamp: h.timestamp,
+			rxRate: h.rxRate,
+			txRate: h.txRate
 		}))
 	};
+}
+
+export async function getData(config: ModuleConfig): Promise<ModuleData> {
+	const units = resolveUnits(config);
+	// `undefined`/unknown source falls back to local so the legacy NIC behaviour
+	// (and its tests) is preserved; the shipped default config opts into `udm`.
+	if (config.source === 'udm') {
+		return getUdmData(config, units);
+	}
+	return getLocalData(units);
 }
