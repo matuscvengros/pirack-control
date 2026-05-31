@@ -1,5 +1,7 @@
 <script lang="ts">
 	let { seconds, onReturn } = $props<{ seconds: number; onReturn: () => void }>();
+	// Initial value only; the $effect below resyncs remaining whenever seconds changes.
+	// svelte-ignore state_referenced_locally
 	let remaining = $state(seconds);
 
 	$effect(() => {
