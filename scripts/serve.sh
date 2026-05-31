@@ -24,6 +24,20 @@ PID=$!
 disown 2>/dev/null || true
 echo "$PID" > "$PIDFILE"
 
+# Verify it didn't exit immediately (e.g. the port is already in use).
+sleep 1
+if ! kill -0 "$PID" 2>/dev/null; then
+	echo "Server exited right after starting — last log lines:" >&2
+	echo "------------------------------------------------------------" >&2
+	tail -n 15 "$LOGFILE" >&2
+	echo "------------------------------------------------------------" >&2
+	echo "Tip: if the port is already in use (e.g. the Docker container is" >&2
+	echo "running), stop it with 'docker compose down' or set a different PORT" >&2
+	echo "in .env, e.g. 'PORT=3001 npm run serve'." >&2
+	rm -f "$PIDFILE"
+	exit 1
+fi
+
 echo "Server started (PID $PID), detached."
 echo "  Logs:    $LOGFILE   (tail -f $LOGFILE)"
 echo "  Status:  npm run status"

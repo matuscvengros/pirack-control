@@ -64,6 +64,9 @@ foreground instead. Environment variables (e.g. `UDM_HOST`, `UDM_API_KEY`) are r
 from `.env` automatically. `npm run clean` removes `build/`, `.svelte-kit/`, and
 `node_modules/` for a fresh start.
 
+> Bare Node is an alternative to Docker, not an addition — both bind the same port,
+> so stop the container first (`docker compose down`) or set a different `PORT`.
+
 ## Usage
 
 - **Dashboard:** `http://<host>:3000/dashboard`
