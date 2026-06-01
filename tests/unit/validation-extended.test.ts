@@ -9,6 +9,12 @@ describe('appConfigSchema extended', () => {
 			lcdAutoReturnSeconds: 60,
 			uiRefreshSeconds: 1
 		},
+		udm: {
+			host: '192.168.1.1',
+			apiKey: 'test-key',
+			site: 'default',
+			insecureTLS: true
+		},
 		modules: {
 			order: ['rack-info', 'uptime'],
 			enabled: ['rack-info'],
@@ -39,6 +45,18 @@ describe('appConfigSchema extended', () => {
 	it('rejects when uiRefreshSeconds is missing entirely', () => {
 		const config = structuredClone(validConfig);
 		delete (config.general as Record<string, unknown>).uiRefreshSeconds;
+		expect(appConfigSchema.safeParse(config).success).toBe(false);
+	});
+
+	it('rejects when udm is missing entirely', () => {
+		const config = structuredClone(validConfig);
+		delete (config as Record<string, unknown>).udm;
+		expect(appConfigSchema.safeParse(config).success).toBe(false);
+	});
+
+	it('rejects when udm.site is missing', () => {
+		const config = structuredClone(validConfig);
+		delete (config.udm as Record<string, unknown>).site;
 		expect(appConfigSchema.safeParse(config).success).toBe(false);
 	});
 

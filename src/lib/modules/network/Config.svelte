@@ -21,59 +21,22 @@
 
 	{#if source === 'udm'}
 		<label class="block">
-			<span class="text-sm text-[#94a3b8]">UDM Pro host / IP</span>
+			<span class="text-sm text-[#94a3b8]">Bandwidth poll interval (ms)</span>
 			<input
-				type="text"
+				type="number"
 				class={inputClass}
-				placeholder="192.168.1.1"
-				value={(settings.udmHost as string) ?? ''}
-				oninput={(e) => (settings.udmHost = e.currentTarget.value.trim())}
+				min="500"
+				max="60000"
+				step="500"
+				value={(settings.pollIntervalMs as number) ?? 3000}
+				oninput={(e) => (settings.pollIntervalMs = parseInt(e.currentTarget.value, 10) || 3000)}
 			/>
-		</label>
-
-		<label class="block">
-			<span class="text-sm text-[#94a3b8]">API key</span>
-			<input
-				type="password"
-				class={inputClass}
-				placeholder="Settings → Control Plane → Integrations"
-				value={(settings.apiKey as string) ?? ''}
-				oninput={(e) => (settings.apiKey = e.currentTarget.value)}
-			/>
-			<span class="text-xs text-[#4a5580]">Read-only local API key. May also be set via the <code>UDM_API_KEY</code> env var.</span>
-		</label>
-
-		<div class="grid grid-cols-2 gap-3">
-			<label class="block">
-				<span class="text-sm text-[#94a3b8]">Site</span>
-				<input
-					type="text"
-					class={inputClass}
-					value={(settings.site as string) ?? 'default'}
-					oninput={(e) => (settings.site = e.currentTarget.value.trim() || 'default')}
-				/>
-			</label>
-			<label class="block">
-				<span class="text-sm text-[#94a3b8]">Poll interval (ms)</span>
-				<input
-					type="number"
-					class={inputClass}
-					min="500"
-					max="60000"
-					step="500"
-					value={(settings.pollIntervalMs as number) ?? 2000}
-					oninput={(e) => (settings.pollIntervalMs = parseInt(e.currentTarget.value, 10) || 2000)}
-				/>
-			</label>
-		</div>
-
-		<label class="flex items-center gap-2 text-sm text-[#94a3b8]">
-			<input
-				type="checkbox"
-				checked={(settings.insecureTLS as boolean) !== false}
-				onchange={(e) => (settings.insecureTLS = e.currentTarget.checked)}
-			/>
-			Allow self-signed certificate (UniFi default)
+			<span class="text-xs text-[#4a5580]">
+				How often the gateway is polled for WAN throughput. Uses the shared
+				<span class="text-[#94a3b8]">Gateway Connection</span> above. The gateway only
+				recomputes WAN rates every few seconds, so values below ~3000ms mostly add load
+				without fresher data.
+			</span>
 		</label>
 	{/if}
 

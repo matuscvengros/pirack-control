@@ -28,16 +28,14 @@
 		}
 	}
 
-	function fetchAllData() {
-		for (const mod of data.modules) {
-			fetchModuleData(mod.id);
-		}
-	}
-
 	$effect(() => {
-		fetchAllData();
-		const interval = setInterval(fetchAllData, data.config.uiRefreshSeconds * 1000);
-		return () => clearInterval(interval);
+		// One timer per module, each at its own cadence (uptime ~1 min, network at its
+		// poll interval, local modules at the global UI refresh).
+		const intervals = data.modules.map((mod) => {
+			fetchModuleData(mod.id);
+			return setInterval(() => fetchModuleData(mod.id), mod.refreshMs);
+		});
+		return () => intervals.forEach((i) => clearInterval(i));
 	});
 
 	function expandPanel(id: string) {

@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { extractWanRatesFromHealth, extractWanRatesFromDevices } from '$lib/server/udm';
+import {
+	extractWanRatesFromHealth,
+	extractWanRatesFromDevices,
+	extractUptimeFromDevices,
+	extractUptimeFromSysinfo
+} from '$lib/server/udm';
 
 describe('extractWanRatesFromHealth', () => {
 	it('reads rx/tx rates from the wan subsystem', () => {
@@ -106,5 +111,48 @@ describe('extractWanRatesFromDevices', () => {
 	it('returns null when no gateway exposes wan rates', () => {
 		const payload = { data: [{ type: 'usw', mac: 'aa' }] };
 		expect(extractWanRatesFromDevices(payload)).toBeNull();
+	});
+});
+
+describe('extractUptimeFromDevices', () => {
+	it('reads uptime from the gateway (identified by a WAN uplink ip)', () => {
+		const payload = {
+			data: [
+				{ type: 'usw', uptime: 111 },
+				{ type: 'udm', uptime: 90061, wan1: { ip: '203.0.113.7' } }
+			]
+		};
+		expect(extractUptimeFromDevices(payload)).toBe(90061);
+	});
+
+	it('reads uptime from a ugw-typed gateway', () => {
+		expect(extractUptimeFromDevices({ data: [{ type: 'ugw', uptime: 4242 }] })).toBe(4242);
+	});
+
+	it('falls back to the first device with an uptime when no gateway is found', () => {
+		const payload = { data: [{ type: 'usw', uptime: 777 }, { type: 'uap', uptime: 888 }] };
+		expect(extractUptimeFromDevices(payload)).toBe(777);
+	});
+
+	it('returns null when no device reports an uptime', () => {
+		expect(extractUptimeFromDevices({ data: [{ type: 'usw' }] })).toBeNull();
+	});
+
+	it('returns null on malformed payloads', () => {
+		expect(extractUptimeFromDevices(null)).toBeNull();
+		expect(extractUptimeFromDevices({})).toBeNull();
+		expect(extractUptimeFromDevices({ data: 'nope' })).toBeNull();
+	});
+});
+
+describe('extractUptimeFromSysinfo', () => {
+	it('reads uptime from the first sysinfo entry', () => {
+		expect(extractUptimeFromSysinfo({ data: [{ uptime: 123456 }] })).toBe(123456);
+	});
+
+	it('returns null when absent or malformed', () => {
+		expect(extractUptimeFromSysinfo({ data: [{}] })).toBeNull();
+		expect(extractUptimeFromSysinfo({})).toBeNull();
+		expect(extractUptimeFromSysinfo(null)).toBeNull();
 	});
 });

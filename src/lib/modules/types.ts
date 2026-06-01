@@ -25,6 +25,13 @@ export interface ModuleDefinition extends ModuleMeta {
 	onAction?(action: string, payload: unknown, config: ModuleConfig): Promise<ActionResult>;
 }
 
+export interface UdmConnection {
+	host: string;
+	apiKey: string;
+	site: string;
+	insecureTLS: boolean;
+}
+
 export interface AppConfig {
 	general: {
 		rackName: string;
@@ -32,6 +39,8 @@ export interface AppConfig {
 		lcdAutoReturnSeconds: number;
 		uiRefreshSeconds: number;
 	};
+	/** Shared UniFi OS gateway connection, used by the network and uptime modules. */
+	udm: UdmConnection;
 	modules: {
 		order: string[];
 		enabled: string[];

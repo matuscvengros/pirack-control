@@ -130,6 +130,52 @@ describe('config deep merge behavior', () => {
 		expect(b.modules.enabled).not.toContain('extra-module');
 	});
 
+	it('migrates legacy network connection fields into the shared udm block', async () => {
+		const legacy = {
+			modules: {
+				settings: {
+					network: {
+						source: 'udm',
+						udmHost: '192.168.1.1',
+						apiKey: 'legacy-key',
+						site: 'office',
+						insecureTLS: false,
+						units: 'bits'
+					}
+				}
+			}
+		};
+		fs.writeFileSync(TEST_CONFIG_PATH, JSON.stringify(legacy));
+
+		const config = await loadConfig();
+		expect(config.udm).toEqual({
+			host: '192.168.1.1',
+			apiKey: 'legacy-key',
+			site: 'office',
+			insecureTLS: false
+		});
+	});
+
+	it('prefers an explicit udm block over legacy fields, merged with defaults', async () => {
+		const partial = {
+			udm: { host: '203.0.113.10', apiKey: 'k' },
+			modules: { settings: { network: { udmHost: 'ignored', apiKey: 'ignored' } } }
+		};
+		fs.writeFileSync(TEST_CONFIG_PATH, JSON.stringify(partial));
+
+		const config = await loadConfig();
+		expect(config.udm.host).toBe('203.0.113.10');
+		expect(config.udm.apiKey).toBe('k');
+		expect(config.udm.site).toBe('default'); // default
+		expect(config.udm.insecureTLS).toBe(true); // default
+	});
+
+	it('falls back to default udm when neither a udm block nor legacy fields exist', async () => {
+		fs.writeFileSync(TEST_CONFIG_PATH, JSON.stringify({ general: { rackName: 'X' } }));
+		const config = await loadConfig();
+		expect(config.udm).toEqual(getDefaultConfig().udm);
+	});
+
 	it('handles config file with extra unknown fields gracefully', async () => {
 		const configWithExtra = {
 			general: {

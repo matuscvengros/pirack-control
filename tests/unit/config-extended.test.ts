@@ -137,6 +137,19 @@ describe('config extended', () => {
 		expect(config.modules.settings).toHaveProperty('cooling');
 	});
 
+	it('getDefaultConfig has a shared udm connection block (empty + permissive defaults)', () => {
+		const config = getDefaultConfig();
+		expect(config.udm).toEqual({ host: '', apiKey: '', site: 'default', insecureTLS: true });
+	});
+
+	it('getDefaultConfig network settings are behaviour-only (no connection fields)', () => {
+		const config = getDefaultConfig();
+		const network = config.modules.settings.network as Record<string, unknown>;
+		expect(network).not.toHaveProperty('udmHost');
+		expect(network).not.toHaveProperty('apiKey');
+		expect(network.pollIntervalMs).toBe(3000);
+	});
+
 	it('getDefaultConfig temperature settings have dangerThreshold and probes', () => {
 		const config = getDefaultConfig();
 		const temp = config.modules.settings.temperature as Record<string, unknown>;

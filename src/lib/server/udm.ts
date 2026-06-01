@@ -165,3 +165,70 @@ export async function fetchWanRates(opts: UdmOptions): Promise<WanRates> {
 
 	throw lastError ?? new Error('Could not read WAN rates from console');
 }
+
+/**
+ * Extract the gateway's uptime (seconds) from a `stat/device` response. Prefers the
+ * gateway itself — the device exposing a WAN uplink (or typed `ugw`) — and falls back
+ * to the first device that reports an uptime. Returns null if none is found.
+ */
+export function extractUptimeFromDevices(payload: unknown): number | null {
+	if (!isRecord(payload) || !Array.isArray(payload.data)) return null;
+	let fallback: number | null = null;
+	for (const device of payload.data) {
+		if (!isRecord(device)) continue;
+		const uptime = num(device.uptime);
+		if (uptime === undefined) continue;
+		const isGateway =
+			device.type === 'ugw' ||
+			[device.wan1, device.wan2, device.uplink].some(
+				(w) => isRecord(w) && (typeof w.ip === 'string' || num(w['rx_bytes-r']) !== undefined)
+			);
+		if (isGateway) return uptime;
+		if (fallback === null) fallback = uptime;
+	}
+	return fallback;
+}
+
+/** Extract uptime (seconds) from a `stat/sysinfo` response. Returns null if absent. */
+export function extractUptimeFromSysinfo(payload: unknown): number | null {
+	if (!isRecord(payload) || !Array.isArray(payload.data)) return null;
+	for (const entry of payload.data) {
+		if (!isRecord(entry)) continue;
+		const uptime = num(entry.uptime);
+		if (uptime !== undefined) return uptime;
+	}
+	return null;
+}
+
+/**
+ * Fetch the gateway's current uptime in seconds from the console.
+ * Reads `stat/device` (gateway entry), falling back to `stat/sysinfo`.
+ * Throws if neither endpoint yields a usable uptime.
+ */
+export async function fetchGatewayUptime(opts: UdmOptions): Promise<{ uptimeSeconds: number }> {
+	const site = opts.site || 'default';
+	const insecure = opts.insecureTLS !== false;
+	const timeoutMs = opts.timeoutMs ?? 4000;
+	const base = `https://${opts.host}/proxy/network/api/s/${encodeURIComponent(site)}`;
+	const headers = { 'X-API-Key': opts.apiKey, Accept: 'application/json' };
+
+	let lastError: Error | null = null;
+
+	try {
+		const devices = await httpsGetJson(`${base}/stat/device`, headers, insecure, timeoutMs);
+		const uptime = extractUptimeFromDevices(devices);
+		if (uptime !== null) return { uptimeSeconds: uptime };
+	} catch (e) {
+		lastError = e as Error;
+	}
+
+	try {
+		const sysinfo = await httpsGetJson(`${base}/stat/sysinfo`, headers, insecure, timeoutMs);
+		const uptime = extractUptimeFromSysinfo(sysinfo);
+		if (uptime !== null) return { uptimeSeconds: uptime };
+	} catch (e) {
+		lastError = e as Error;
+	}
+
+	throw lastError ?? new Error('Could not read gateway uptime from console');
+}

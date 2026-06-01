@@ -1,7 +1,7 @@
 import fs from 'fs/promises';
 import { mkdirSync } from 'fs';
 import path from 'path';
-import type { AppConfig } from '$lib/modules/types';
+import type { AppConfig, UdmConnection } from '$lib/modules/types';
 
 export function getDataDir(): string {
 	return process.env.DATA_DIR || path.join(process.cwd(), 'data');
@@ -19,18 +19,20 @@ export function getDefaultConfig(): AppConfig {
 			lcdAutoReturnSeconds: 60,
 			uiRefreshSeconds: 1
 		},
+		udm: {
+			host: '',
+			apiKey: '',
+			site: 'default',
+			insecureTLS: true
+		},
 		modules: {
 			order: ['rack-info', 'uptime', 'network', 'temperature', 'cooling'],
 			enabled: ['rack-info', 'uptime', 'network', 'temperature', 'cooling'],
 			settings: {
 				network: {
 					source: 'udm',
-					udmHost: '',
-					apiKey: '',
-					site: 'default',
-					pollIntervalMs: 2000,
-					units: 'bits',
-					insecureTLS: true
+					pollIntervalMs: 3000,
+					units: 'bits'
 				},
 				temperature: {
 					dangerThreshold: 45,
@@ -44,6 +46,32 @@ export function getDefaultConfig(): AppConfig {
 	};
 }
 
+/**
+ * Resolve the shared gateway connection block, migrating from the legacy layout
+ * where host/apiKey/site/insecureTLS lived under the network module's settings.
+ * Returns the defaults when neither a `udm` block nor legacy fields are present.
+ */
+function mergeUdm(defaults: UdmConnection, parsed: Record<string, unknown>): UdmConnection {
+	const parsedUdm = parsed.udm;
+	if (parsedUdm && typeof parsedUdm === 'object') {
+		return { ...defaults, ...(parsedUdm as Partial<UdmConnection>) };
+	}
+	// Legacy migration: lift connection fields out of the network module settings.
+	const net = (parsed.modules as Record<string, unknown> | undefined)?.settings as
+		| Record<string, Record<string, unknown>>
+		| undefined;
+	const legacy = net?.network;
+	if (legacy && typeof legacy === 'object') {
+		return {
+			host: typeof legacy.udmHost === 'string' ? legacy.udmHost : defaults.host,
+			apiKey: typeof legacy.apiKey === 'string' ? legacy.apiKey : defaults.apiKey,
+			site: typeof legacy.site === 'string' ? legacy.site : defaults.site,
+			insecureTLS: legacy.insecureTLS !== false
+		};
+	}
+	return defaults;
+}
+
 export async function loadConfig(): Promise<AppConfig> {
 	const configPath = getConfigPath();
 	const defaults = getDefaultConfig();
@@ -53,6 +81,7 @@ export async function loadConfig(): Promise<AppConfig> {
 		// Deep merge with defaults
 		return {
 			general: { ...defaults.general, ...parsed.general },
+			udm: mergeUdm(defaults.udm, parsed),
 			modules: {
 				order: parsed.modules?.order ?? defaults.modules.order,
 				enabled: parsed.modules?.enabled ?? defaults.modules.enabled,
@@ -66,6 +95,20 @@ export async function loadConfig(): Promise<AppConfig> {
 		console.warn('[Config] Could not read config file, using defaults:', (e as Error).message);
 		return defaults;
 	}
+}
+
+/**
+ * Resolve the effective gateway connection: a saved config value takes precedence,
+ * falling back to the matching environment variable, so a server can be configured
+ * entirely via `.env`.
+ */
+export function resolveUdmConnection(udm: UdmConnection): UdmConnection {
+	return {
+		host: (String(udm.host ?? '').trim() || process.env.UDM_HOST) ?? '',
+		apiKey: (String(udm.apiKey ?? '').trim() || process.env.UDM_API_KEY) ?? '',
+		site: String(udm.site ?? '').trim() || process.env.UDM_SITE || 'default',
+		insecureTLS: udm.insecureTLS !== false
+	};
 }
 
 export async function saveConfig(config: AppConfig): Promise<void> {

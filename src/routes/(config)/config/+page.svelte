@@ -67,7 +67,38 @@
 		<label class="block">
 			<span class="text-sm text-[#94a3b8]">UI Refresh Interval (seconds)</span>
 			<input type="number" class="mt-1 block w-full bg-[#1a1f2e] border border-[#2a3040] rounded px-3 py-2 text-sm text-[#e2e8f0]" bind:value={config.general.uiRefreshSeconds} min="1" max="60" />
+			<span class="text-xs text-[#4a5580]">Refresh rate for local readings (temperature, cooling, rack info). Network and uptime poll the gateway on their own schedules.</span>
 		</label>
+	</div>
+</section>
+
+<section class="mb-8">
+	<h2 class="text-lg font-semibold mb-4 text-[#e2e8f0]">Gateway Connection</h2>
+	<p class="text-sm text-[#4a5580] mb-4">
+		Shared UniFi OS gateway connection used by the Network and Uptime modules. Any field may instead
+		be set via environment variables (<code>UDM_HOST</code>, <code>UDM_API_KEY</code>,
+		<code>UDM_SITE</code>), which keeps secrets out of <code>config.json</code>.
+	</p>
+	<div class="bg-[#161a26] rounded-lg p-5 space-y-4">
+		<label class="block">
+			<span class="text-sm text-[#94a3b8]">Host / IP</span>
+			<input type="text" class="mt-1 block w-full bg-[#1a1f2e] border border-[#2a3040] rounded px-3 py-2 text-sm text-[#e2e8f0]" placeholder="192.168.1.1" bind:value={config.udm.host} />
+		</label>
+		<label class="block">
+			<span class="text-sm text-[#94a3b8]">API key</span>
+			<input type="password" class="mt-1 block w-full bg-[#1a1f2e] border border-[#2a3040] rounded px-3 py-2 text-sm text-[#e2e8f0]" placeholder="Settings → Control Plane → Integrations" bind:value={config.udm.apiKey} />
+			<span class="text-xs text-[#4a5580]">Read-only local API key. May also be set via the <code>UDM_API_KEY</code> env var.</span>
+		</label>
+		<div class="grid grid-cols-2 gap-3 items-end">
+			<label class="block">
+				<span class="text-sm text-[#94a3b8]">Site</span>
+				<input type="text" class="mt-1 block w-full bg-[#1a1f2e] border border-[#2a3040] rounded px-3 py-2 text-sm text-[#e2e8f0]" placeholder="default" bind:value={config.udm.site} />
+			</label>
+			<label class="flex items-center gap-2 text-sm text-[#94a3b8] py-2">
+				<input type="checkbox" bind:checked={config.udm.insecureTLS} />
+				Allow self-signed certificate (UniFi default)
+			</label>
+		</div>
 	</div>
 </section>
 

@@ -1,6 +1,6 @@
 import os from 'os';
 import fs from 'fs';
-import type { ModuleConfig, ModuleData } from '$lib/modules/types';
+import type { ModuleConfig, ModuleData, UdmConnection } from '$lib/modules/types';
 import { fetchWanRates, type WanRates } from '$lib/server/udm';
 import type { RateUnits } from './format';
 
@@ -166,12 +166,11 @@ function ensurePoller(cfg: UdmPollerConfig): void {
 	udm.timer.unref?.();
 }
 
-function getUdmData(config: ModuleConfig, units: RateUnits): ModuleData {
-	// Each field may come from the saved config (set on the /config page) or from
-	// an environment variable, so a server can be configured entirely via `.env`.
-	const host = (String(config.udmHost ?? '').trim() || process.env.UDM_HOST) ?? '';
-	const apiKey = (String(config.apiKey ?? '').trim() || process.env.UDM_API_KEY) ?? '';
-	const site = String(config.site ?? '').trim() || process.env.UDM_SITE || 'default';
+function getUdmData(config: ModuleConfig, conn: UdmConnection, units: RateUnits): ModuleData {
+	// The gateway connection is shared (resolved from the config page or `.env`);
+	// the module config only carries presentation/poll behaviour. Named `conn` so it
+	// doesn't shadow the module-level `udm` poller state used below.
+	const { host, apiKey, site, insecureTLS } = conn;
 
 	if (!host || !apiKey) {
 		return {
@@ -193,8 +192,8 @@ function getUdmData(config: ModuleConfig, units: RateUnits): ModuleData {
 		host,
 		apiKey,
 		site,
-		intervalMs: typeof config.pollIntervalMs === 'number' ? config.pollIntervalMs : 2000,
-		insecureTLS: config.insecureTLS !== false
+		intervalMs: typeof config.pollIntervalMs === 'number' ? config.pollIntervalMs : 3000,
+		insecureTLS
 	});
 
 	const latest = udm?.latest ?? null;
@@ -218,12 +217,14 @@ function getUdmData(config: ModuleConfig, units: RateUnits): ModuleData {
 	};
 }
 
-export async function getData(config: ModuleConfig): Promise<ModuleData> {
+const EMPTY_CONNECTION: UdmConnection = { host: '', apiKey: '', site: 'default', insecureTLS: true };
+
+export async function getData(config: ModuleConfig, conn?: UdmConnection): Promise<ModuleData> {
 	const units = resolveUnits(config);
 	// `undefined`/unknown source falls back to local so the legacy NIC behaviour
 	// (and its tests) is preserved; the shipped default config opts into `udm`.
 	if (config.source === 'udm') {
-		return getUdmData(config, units);
+		return getUdmData(config, conn ?? EMPTY_CONNECTION, units);
 	}
 	return getLocalData(units);
 }

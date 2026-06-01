@@ -13,7 +13,10 @@ describe('network module — UDM mode (unconfigured)', () => {
 	});
 
 	it('reports not-configured with a host but no API key', async () => {
-		const data = await getData({ source: 'udm', udmHost: '192.168.1.1' });
+		const data = await getData(
+			{ source: 'udm' },
+			{ host: '192.168.1.1', apiKey: '', site: 'default', insecureTLS: true }
+		);
 		expect(data.configured).toBe(false);
 		expect(data.error).toMatch(/api key/i);
 	});

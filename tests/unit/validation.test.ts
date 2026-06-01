@@ -9,6 +9,12 @@ describe('appConfigSchema', () => {
 			lcdAutoReturnSeconds: 60,
 			uiRefreshSeconds: 1
 		},
+		udm: {
+			host: '192.168.1.1',
+			apiKey: 'test-key',
+			site: 'default',
+			insecureTLS: true
+		},
 		modules: {
 			order: ['rack-info', 'uptime'],
 			enabled: ['rack-info'],
@@ -126,6 +132,31 @@ describe('appConfigSchema', () => {
 	it('rejects non-integer uiRefreshSeconds', () => {
 		const config = structuredClone(validConfig);
 		config.general.uiRefreshSeconds = 1.5;
+		expect(appConfigSchema.safeParse(config).success).toBe(false);
+	});
+
+	it('accepts a udm block with empty host/apiKey (env-only config)', () => {
+		const config = structuredClone(validConfig);
+		config.udm.host = '';
+		config.udm.apiKey = '';
+		expect(appConfigSchema.safeParse(config).success).toBe(true);
+	});
+
+	it('rejects when udm is missing entirely', () => {
+		const config = structuredClone(validConfig) as Record<string, unknown>;
+		delete config.udm;
+		expect(appConfigSchema.safeParse(config).success).toBe(false);
+	});
+
+	it('rejects non-boolean udm.insecureTLS', () => {
+		const config = structuredClone(validConfig);
+		(config.udm as Record<string, unknown>).insecureTLS = 'yes';
+		expect(appConfigSchema.safeParse(config).success).toBe(false);
+	});
+
+	it('rejects udm.host over 255 characters', () => {
+		const config = structuredClone(validConfig);
+		config.udm.host = 'x'.repeat(256);
 		expect(appConfigSchema.safeParse(config).success).toBe(false);
 	});
 

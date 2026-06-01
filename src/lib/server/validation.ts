@@ -10,6 +10,12 @@ export const appConfigSchema = z.object({
 		lcdAutoReturnSeconds: z.number().int().min(10).max(300),
 		uiRefreshSeconds: z.number().int().min(1).max(60)
 	}),
+	udm: z.object({
+		host: z.string().max(255),
+		apiKey: z.string().max(255),
+		site: z.string().max(64),
+		insecureTLS: z.boolean()
+	}),
 	modules: z.object({
 		order: z.array(z.string().max(32)).max(20),
 		enabled: z.array(z.string().max(32)).max(20),
